@@ -10,12 +10,39 @@
 #include <QHeaderView>
 #include <QStatusBar>
 #include <QDebug>
+#include <QtWidgets/QWidget>
+#include <QtCharts/QChartGlobal>
+#include <QtCharts/QChartView>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
+#include <QtCharts/QAbstractBarSeries>
+#include <QtCharts/QPercentBarSeries>
+#include <QtCharts/QStackedBarSeries>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QAreaSeries>
+#include <QtCharts/QLegend>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtCore/QTime>
+#include <QtCharts/QBarCategoryAxis>
+
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: //QWidget(parent)
 	  QMainWindow(parent)
 {
-	//Устанавливаем размер главного окна
+     themeWidget = new ThemeWidget();
+    //Устанавливаем размер главного окна
 	this->setGeometry(100, 100, 1500, 500);
 	this->setStatusBar(new QStatusBar(this));
 	this->statusBar()->showMessage("Choosen Path: ");
@@ -39,10 +66,19 @@ MainWindow::MainWindow(QWidget *parent)
 	tableView = new QTableView;
 	tableView->setModel(fileModel);
 	splitter->addWidget(treeView);
-	splitter->addWidget(tableView);
+    //splitter->addWidget(tableView);
+
+//1.Добавление диаграммы
+     QChartView *chartView;
+     QChart *chartBar =  themeWidget->createBarChart(5);
+     chartView = new QChartView(chartBar);
+
+    //splitter->addWidget(themeWidget);
+    //splitter->addWidget(chartView);
+    splitter->addWidget(chartView);
 	setCentralWidget(splitter);
 
-	QItemSelectionModel *selectionModel = treeView->selectionModel();
+    QItemSelectionModel *selectionModel = treeView->selectionModel();
 	QModelIndex rootIx = dirModel->index(0, 0, QModelIndex());//корневой элемент
 
 	QModelIndex indexHomePath = dirModel->index(homePath);

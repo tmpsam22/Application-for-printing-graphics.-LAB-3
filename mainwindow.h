@@ -6,6 +6,7 @@
 #include <QFileSystemModel>
 #include <QTreeView>
 #include <QTableView>
+#include "themewidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -22,6 +23,7 @@ private:
 	QFileSystemModel *dirModel;
 	QTreeView *treeView;
 	QTableView *tableView;
+    ThemeWidget *themeWidget;
 };
 
 #endif // MAINWINDOW_H
