@@ -19,6 +19,8 @@ public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 private:
+    void testInit(QWidget*);
+private:
 	QFileSystemModel *fileModel;
 	QFileSystemModel *dirModel;
 	QTreeView *treeView;

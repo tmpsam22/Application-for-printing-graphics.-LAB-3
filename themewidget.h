@@ -44,19 +44,17 @@ class QChart;
 #include <QPoint>
 #include <QString>
 
-typedef QPair<QPointF, QString> Data;
-typedef QList<Data> DataList;
-typedef QList<DataList> DataTable;
+using Data = QPair<QPointF, QString>;
+using DataList = QList<Data>;
+using DataTable = QList<DataList>;
 
-class WidgetChart:public QWidget
+struct WidgetChart : QWidget
 {
     Q_OBJECT
-public:
     explicit WidgetChart(QWidget *parent = nullptr);
-    ~WidgetChart(){}
-
-
+    ~WidgetChart() = default;
 };
+
 class ThemeWidget: public QWidget
 {
     Q_OBJECT
