@@ -2,7 +2,7 @@
 #include <QtSql>
 
 template <>
-struct dataManipulate<type_file::sql>
+struct dataManipulation<type_file::sql>
 {
     QVector<data> getData(const QString& path) const
     {
@@ -40,10 +40,10 @@ struct dataManipulate<type_file::sql>
 };
 
 template <>
-struct dataManipulate<type_file::json>
+struct dataManipulation<type_file::json>
 {
     QVector<data> getData(const QString& path) const
     {
         return QVector<data>{};
     }
-}
+};

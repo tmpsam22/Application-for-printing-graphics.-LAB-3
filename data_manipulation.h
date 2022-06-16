@@ -15,7 +15,7 @@ enum class type_file : int
 };
 
 template <type_file type>
-struct dataManipulate
+struct dataManipulation
 {
     QVector<data> getData(const QString&/*path*/) const
     {
