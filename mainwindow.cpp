@@ -121,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
     : //QWidget(parent)
       QMainWindow(parent)
 {
-#ifdef TEST
+#ifdef DEBUG
     testInit(parent);
     return;
 #endif
