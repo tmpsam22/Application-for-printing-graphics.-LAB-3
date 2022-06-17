@@ -15,7 +15,7 @@ struct dataManipulation<type_file::sql>
         {
             // todo: simple output with message box
             qDebug() << dbase.lastError().text();
-            return QVector<data>();
+            return QVector<data>{};
         }
 
         QVector<data> data_;

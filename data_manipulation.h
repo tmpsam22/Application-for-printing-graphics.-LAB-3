@@ -24,4 +24,4 @@ struct dataManipulation
 };
 
 
-#endif // OPENDATA_H
+#endif // DATA_MANIPULATION_H
