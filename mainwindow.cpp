@@ -39,20 +39,21 @@
 #include <QListWidget>
 #include <QComboBox>
 #include <QLabel>
+#include <QFileDialog>
+#include <data_manipulation.h>
+#include "message_box.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QWidget{parent}
+    : QWidget{ parent }
+    , currentPath{ QDir::homePath() }
 {
     // Window setup
     setGeometry(80, 80, 1000, 600);
 
-    // Path
-    QString homePath = QDir::homePath();
-
     // file model
-    fileModel = new QFileSystemModel(this);
+    fileModel = new QFileSystemModel{this};
     fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    fileModel->setRootPath(homePath);
+    fileModel->setRootPath(currentPath);
 
     // declare layots
     auto layoutMain  = new QHBoxLayout{this};
@@ -77,15 +78,7 @@ MainWindow::MainWindow(QWidget *parent)
     // table view
     tableView = new QTableView;
     tableView->setModel(fileModel);
-    QItemSelectionModel *selectionModel = tableView->selectionModel();
-
-    // signals
-    connect(
-            selectionModel,
-            SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-            this,
-            SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &))
-    );
+    tableView->setRootIndex(fileModel->setRootPath(currentPath));
 
     // splitter setup
     splitter->addWidget(tableView);
@@ -99,39 +92,84 @@ MainWindow::MainWindow(QWidget *parent)
     layoutOptions->addWidget(buttonWritePdf, 0, Qt::AlignTop);
     layoutOptions->addWidget(buttonChooseDirectory, 0,  Qt::AlignRight | Qt::AlignTop);
     layoutMain->addLayout(layoutOptions);
+
     setLayout(layoutMain);
+
+    QItemSelectionModel *selectionModel = tableView->selectionModel();
+
+    // setup signals
+    connect(
+            selectionModel,
+            SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this,
+            SLOT(slotSelectionChanged(const QItemSelection &, const QItemSelection &))
+    );
+
+    connect(
+           buttonChooseDirectory,
+           &QPushButton::clicked,
+           this,
+           &MainWindow::slotChooseDirectory
+    );
+}
+
+// draw diagram
+
+void drawDiagram(const container& outputToDraw)
+{
 
 }
 
-void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
+// slots
+void MainWindow::slotChooseDirectory()
+{
+    QFileDialog dialog{this};
+    dialog.setFileMode(QFileDialog::Directory);
+    if ( dialog.exec() )
+    {
+        currentPath = dialog.selectedFiles().first();
+    }
+    tableView->setRootIndex(fileModel->setRootPath(currentPath));
+}
+
+void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
-    QModelIndex index = tableView->selectionModel()->currentIndex();
     QModelIndexList indexs =  selected.indexes();
     QString filePath = "";
 
-    // Размещаем инфо в statusbar относительно выделенного модельного индекса
-
-    if (indexs.count() >= 1) {
-        QModelIndex ix =  indexs.constFirst();
-        filePath = fileModel->filePath(ix);
-        //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
+    if (indexs.count() < 1)
+    {
+        return;
     }
 
-    //TODO: !!!!!
-    /*
-    Тут простейшая обработка ширины первого столбца относительно длины названия папки.
-    Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
-    Требуется доработка(переработка).
-    */
-    int length = 200;
-    int dx = 30;
+    QModelIndex ix =  indexs.constFirst();
+    filePath = fileModel->filePath(ix);
+    // @todo: insert ioc container, status bar
+    //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
 
-    if (fileModel->fileName(index).length() * dx > length) {
-        length = length + fileModel->fileName(index).length() * dx;
-        qDebug() << "r = " << index.row() << "c = " << index.column() << fileModel->fileName(index) << fileModel->fileInfo(
-                     index).size();
+    bool isExpectedFile = true
+            && filePath.endsWith(".sqlite")
+            && filePath.endsWith(".json");
+    if (!isExpectedFile)
+    {
+        messageBox{"Expect .json or .sqlite"};
+    }
 
+    auto data = dataManipulation<type_file::unknown>{}.getData( " " );
+
+    if (filePath.endsWith(".sqlite"))
+    {
+        data = dataManipulation<type_file::sql>{}.getData(filePath);
+    }
+    if (filePath.endsWith(".json"))
+    {
+        data = dataManipulation<type_file::json>{}.getData(filePath);
+    }
+
+    if (data.empty())
+    {
+        messageBox{ "Data in file is empty" };
     }
 }
 

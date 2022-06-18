@@ -5,19 +5,21 @@
 #include <QPair>
 #include <QVector>
 
-// todo: to date
 using data = QPair<QString, double>;
+using container = QVector< QPair<QString, double> > ;
 
 enum class type_file : int
 {
     sql,
-    json
+    json,
+
+    unknown
 };
 
 template <type_file type>
 struct dataManipulation
 {
-    QVector<data> getData(const QString&/*path*/) const
+    container getData(const QString&/*path*/) const
     {
         return QVector<data>{};
     }

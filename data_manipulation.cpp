@@ -1,17 +1,17 @@
 #include "data_manipulation.h"
 #include <QtSql>
+#include "message_box.h"
 
 template <>
 struct dataManipulation<type_file::sql>
 {
-    QVector<data> getData(const QString& path) const
+    container getData(const QString& path) const
     {
         QSqlDatabase dbase {QSqlDatabase::addDatabase("QSQLITE")};
         dbase.setDatabaseName(path);
         if (!dbase.open())
         {
-            // todo: simple output with message box
-            qDebug() << dbase.lastError().text();
+            messageBox{ dbase.lastError().text() };
             return QVector<data>{};
         }
 
@@ -36,15 +36,14 @@ struct dataManipulation<type_file::sql>
 template<>
 struct dataManipulation<type_file::json>
 {
-    QVector<data> getData(const QString& path) const
+    container getData(const QString& path) const
     {
         QFile file;
         file.setFileName(path);
         file.open(QIODevice::ReadOnly | QIODevice::Text);
         if (!file.isOpen())
         {
-            // todo: msg box
-            qDebug() << "File was not open!";
+            messageBox{ "File was not open!" };
             return QVector<data>{};
         }
 
@@ -54,8 +53,7 @@ struct dataManipulation<type_file::json>
         auto doc = QJsonDocument::fromJson(val.toUtf8());
         if (!doc.isArray())
         {
-            // todo: msg box
-            qDebug() << "Expect json in an array";
+            messageBox{ "Expect json in an array" };
             return QVector<data>{};
         }
 

@@ -13,12 +13,15 @@ class MainWindow : public QWidget
 	Q_OBJECT
 private slots:
 
-	void on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected);
+    void slotSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+
+    void slotChooseDirectory();
 
 public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 private:
+    QString currentPath;
     QFileSystemModel *fileModel;
     QTableView *tableView;
 };

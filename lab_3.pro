@@ -34,4 +34,5 @@ SOURCES += \
 HEADERS += \
      data_manipulation.h \
         mainwindow.h \
+     message_box.h \
     themewidget.h
