@@ -35,193 +35,78 @@
 #include <QtCore/QTime>
 #include <QtCharts/QBarCategoryAxis>
 #include <QSplitter>
-
-void MainWindow::testInit(QWidget *parent)
-{
-    //Устанавливаем размер главного окна
-    this->setGeometry(100, 100, 1500, 500);
-    this->setStatusBar(new QStatusBar(this));
-    this->statusBar()->showMessage("Choosen Path: ");
-    QString homePath = QDir::homePath();
-    // Определим  файловой системы:
-    dirModel =  new QFileSystemModel(this);
-    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    dirModel->setRootPath(homePath);
-
-    fileModel = new QFileSystemModel(this);
-    fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-
-    fileModel->setRootPath(homePath);
-    //Показать как дерево, пользуясь готовым видом:
-
-    treeView = new QTreeView();
-    treeView->setModel(dirModel);
-
-    treeView->expandAll();
-    QSplitter *splitter = new QSplitter(parent);
-    tableView = new QTableView;
-    tableView->setModel(fileModel);
-    splitter->addWidget(treeView);
-    splitter->addWidget(tableView);
-    setCentralWidget(splitter);
-
-    QItemSelectionModel *selectionModel = treeView->selectionModel();
-    QModelIndex rootIx = dirModel->index(0, 0, QModelIndex());//корневой элемент
-
-    QModelIndex indexHomePath = dirModel->index(homePath);
-    QFileInfo fileInfo = dirModel->fileInfo(indexHomePath);
-
-    /* Рассмотрим способы обхода содержимого папок на диске.
-     * Предлагается вариант решения, которы может быть применен для более сложных задач.
-     * Итак, если требуется выполнить анализ содержимого папки, то необходимо организовать обход содержимого. Обход выполняем относительно модельного индекса.
-     * Например:*/
-    if (fileInfo.isDir()) {
-        /*
-         * Если fileInfo папка то заходим в нее, что бы просмотреть находящиеся в ней файлы.
-         * Если нужно просмотреть все файлы, включая все вложенные папки, то нужно организовать рекурсивный обход.
-        */
-        QDir dir  = fileInfo.dir();
-
-        if (dir.cd(fileInfo.fileName())) {
-            /**
-             * Если зашли в папку, то пройдемся по контейнеру QFileInfoList ,полученного методом entryInfoList,
-             * */
-
-            foreach (QFileInfo inf, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Type)) {
-                qDebug() << inf.fileName() << "---" << inf.size();
-            }
-
-            dir.cdUp();//выходим из папки
-        }
-    }
-
-    QDir dir = fileInfo.dir();
-
-    foreach (QFileInfo inf, dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::Type)) {
-
-        qDebug() << inf.fileName() << "---" << inf.size();
-    }
-
-
-    treeView->header()->resizeSection(0, 200);
-    //Выполняем соединения слота и сигнала который вызывается когда осуществляется выбор элемента в TreeView
-    connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-            this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
-    //Пример организации установки курсора в TreeView относит ельно модельного индекса
-    QItemSelection toggleSelection;
-    QModelIndex topLeft;
-    topLeft = dirModel->index(homePath);
-    dirModel->setRootPath(homePath);
-
-    toggleSelection.select(topLeft, topLeft);
-    selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
-}
+#include <QPushButton>
+#include <QListWidget>
+#include <QComboBox>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent)
-    : //QWidget(parent)
-      QMainWindow(parent)
+    : QWidget{parent}
 {
-#ifdef DEBUG
-    testInit(parent);
-    return;
-#endif
+    // Window setup
+    setGeometry(80, 80, 1000, 600);
 
-     themeWidget = new ThemeWidget();
-    //Устанавливаем размер главного окна
-    this->setGeometry(100, 100, 1500, 500);
-    this->setStatusBar(new QStatusBar(this));
-    this->statusBar()->showMessage("Choosen Path: ");
+    // Path
     QString homePath = QDir::homePath();
-    // Определим  файловой системы:
-    dirModel =  new QFileSystemModel(this);
-    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    dirModel->setRootPath(homePath);
 
+    // file model
     fileModel = new QFileSystemModel(this);
     fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-
     fileModel->setRootPath(homePath);
-    //Показать как дерево, пользуясь готовым видом:
 
-    treeView = new QTreeView();
-    treeView->setModel(dirModel);
+    // declare layots
+    auto layoutMain  = new QHBoxLayout{this};
+    auto layoutOptions = new QHBoxLayout{};
 
-    treeView->expandAll();
-    QSplitter *splitter = new QSplitter(parent);
+    // declare buttons
+    auto buttonChooseDirectory = new QPushButton{"Choose directory", this};
+    auto buttonWritePdf = new QPushButton{"Save to PDF", this};
+
+    // declare splitter
+    QSplitter *splitter = new QSplitter(Qt::Horizontal);
+
+    // declare combobox and setup for choose type of diagram
+    QStringList diagrams = {"BarChart", "Pie"};
+    auto boxType = new QComboBox{};
+    auto boxLabel = new QLabel{"Choose type of diagram", this};
+    boxType->addItems(diagrams);
+
+    // declare checkBox for colorblind
+    auto checkColor = new QCheckBox("Show Title", this);
+
+    // table view
     tableView = new QTableView;
     tableView->setModel(fileModel);
-    splitter->addWidget(treeView);
-    //splitter->addWidget(tableView);
+    QItemSelectionModel *selectionModel = tableView->selectionModel();
 
-//1.Добавление диаграммы
-     QChartView *chartView;
-     QChart *chartBar =  themeWidget->createBarChart(5);
-     chartView = new QChartView(chartBar);
+    // signals
+    connect(
+            selectionModel,
+            SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this,
+            SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &))
+    );
 
-    //splitter->addWidget(themeWidget);
-    //splitter->addWidget(chartView);
-    splitter->addWidget(chartView);
-    setCentralWidget(splitter);
+    // splitter setup
+    splitter->addWidget(tableView);
 
-    QItemSelectionModel *selectionModel = treeView->selectionModel();
-    QModelIndex rootIx = dirModel->index(0, 0, QModelIndex());//корневой элемент
+    // layout setup
+    layoutOptions->stretch(1);
+    layoutOptions->addWidget(splitter);
+    layoutOptions->addWidget(boxLabel, 0, Qt::AlignLeft | Qt::AlignTop);
+    layoutOptions->addWidget(boxType, 0, Qt::AlignTop);
+    layoutOptions->addWidget(checkColor, 0, Qt::AlignTop);
+    layoutOptions->addWidget(buttonWritePdf, 0, Qt::AlignTop);
+    layoutOptions->addWidget(buttonChooseDirectory, 0,  Qt::AlignRight | Qt::AlignTop);
+    layoutMain->addLayout(layoutOptions);
+    setLayout(layoutMain);
 
-    QModelIndex indexHomePath = dirModel->index(homePath);
-    QFileInfo fileInfo = dirModel->fileInfo(indexHomePath);
-
-    /* Рассмотрим способы обхода содержимого папок на диске.
-     * Предлагается вариант решения, которы может быть применен для более сложных задач.
-     * Итак, если требуется выполнить анализ содержимого папки, то необходимо организовать обход содержимого. Обход выполняем относительно модельного индекса.
-     * Например:*/
-    if (fileInfo.isDir()) {
-        /*
-         * Если fileInfo папка то заходим в нее, что бы просмотреть находящиеся в ней файлы.
-         * Если нужно просмотреть все файлы, включая все вложенные папки, то нужно организовать рекурсивный обход.
-        */
-        QDir dir  = fileInfo.dir();
-
-        if (dir.cd(fileInfo.fileName())) {
-            /**
-             * Если зашли в папку, то пройдемся по контейнеру QFileInfoList ,полученного методом entryInfoList,
-             * */
-
-            foreach (QFileInfo inf, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Type)) {
-                qDebug() << inf.fileName() << "---" << inf.size();
-            }
-
-            dir.cdUp();//выходим из папки
-        }
-    }
-
-    QDir dir = fileInfo.dir();
-
-    foreach (QFileInfo inf, dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::Type)) {
-
-        qDebug() << inf.fileName() << "---" << inf.size();
-    }
-
-
-    treeView->header()->resizeSection(0, 200);
-    //Выполняем соединения слота и сигнала который вызывается когда осуществляется выбор элемента в TreeView
-    connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-            this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
-    //Пример организации установки курсора в TreeView относит ельно модельного индекса
-    QItemSelection toggleSelection;
-    QModelIndex topLeft;
-    topLeft = dirModel->index(homePath);
-    dirModel->setRootPath(homePath);
-
-    toggleSelection.select(topLeft, topLeft);
-    selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
 }
-//Слот для обработки выбора элемента в TreeView
-//выбор осуществляется с помощью курсора
 
 void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    //Q_UNUSED(selected);
     Q_UNUSED(deselected);
-    QModelIndex index = treeView->selectionModel()->currentIndex();
+    QModelIndex index = tableView->selectionModel()->currentIndex();
     QModelIndexList indexs =  selected.indexes();
     QString filePath = "";
 
@@ -229,8 +114,8 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
 
     if (indexs.count() >= 1) {
         QModelIndex ix =  indexs.constFirst();
-        filePath = dirModel->filePath(ix);
-        this->statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
+        filePath = fileModel->filePath(ix);
+        //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
     }
 
     //TODO: !!!!!
@@ -242,15 +127,12 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
     int length = 200;
     int dx = 30;
 
-    if (dirModel->fileName(index).length() * dx > length) {
-        length = length + dirModel->fileName(index).length() * dx;
-        qDebug() << "r = " << index.row() << "c = " << index.column() << dirModel->fileName(index) << dirModel->fileInfo(
+    if (fileModel->fileName(index).length() * dx > length) {
+        length = length + fileModel->fileName(index).length() * dx;
+        qDebug() << "r = " << index.row() << "c = " << index.column() << fileModel->fileName(index) << fileModel->fileInfo(
                      index).size();
 
     }
-
-    treeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-    tableView->setRootIndex(fileModel->setRootPath(filePath));
 }
 
 MainWindow::~MainWindow()

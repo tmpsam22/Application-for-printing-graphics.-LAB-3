@@ -8,7 +8,7 @@
 #include <QTableView>
 #include "themewidget.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
 	Q_OBJECT
 private slots:
@@ -19,13 +19,8 @@ public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 private:
-    void testInit(QWidget*);
-private:
-	QFileSystemModel *fileModel;
-	QFileSystemModel *dirModel;
-	QTreeView *treeView;
-	QTableView *tableView;
-    ThemeWidget *themeWidget;
+    QFileSystemModel *fileModel;
+    QTableView *tableView;
 };
 
 #endif // MAINWINDOW_H
