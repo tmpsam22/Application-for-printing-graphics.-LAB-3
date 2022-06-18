@@ -26,12 +26,13 @@ DEFINES += DEBUG
 
 
 SOURCES += \
-     data_manipulation.cpp \
+     chart.cpp \
         main.cpp \
         mainwindow.cpp \
     themewidget.cpp
 
 HEADERS += \
+     chart.h \
      data_manipulation.h \
         mainwindow.h \
      message_box.h \

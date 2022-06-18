@@ -42,9 +42,11 @@
 #include <QFileDialog>
 #include <data_manipulation.h>
 #include "message_box.h"
+#include <QValueAxis>
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget{ parent }
+    , chartManipulation{ }
     , currentPath{ QDir::homePath() }
 {
     // Window setup
@@ -58,6 +60,9 @@ MainWindow::MainWindow(QWidget *parent)
     // declare layots
     auto layoutMain  = new QHBoxLayout{this};
     auto layoutOptions = new QHBoxLayout{};
+    auto layoutVert = new QVBoxLayout{};
+    layoutVert->addLayout(layoutOptions);
+    layoutMain->addLayout(layoutVert);
 
     // declare buttons
     auto buttonChooseDirectory = new QPushButton{"Choose directory", this};
@@ -65,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // declare splitter
     QSplitter *splitter = new QSplitter(Qt::Horizontal);
+    QSplitter *vertSplitter = new QSplitter(Qt::Vertical);
+
 
     // declare combobox and setup for choose type of diagram
     QStringList diagrams = {"BarChart", "Pie"};
@@ -75,6 +82,9 @@ MainWindow::MainWindow(QWidget *parent)
     // declare checkBox for colorblind
     auto checkColor = new QCheckBox("Show Title", this);
 
+    // declare chartView
+    chartManipulation.chartView = new QChartView{};
+
     // table view
     tableView = new QTableView;
     tableView->setModel(fileModel);
@@ -82,16 +92,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     // splitter setup
     splitter->addWidget(tableView);
+    vertSplitter->addWidget(chartManipulation.chartView);
+
 
     // layout setup
+    layoutMain->addWidget(splitter);
+    layoutVert->addWidget(vertSplitter);
+
     layoutOptions->stretch(1);
-    layoutOptions->addWidget(splitter);
     layoutOptions->addWidget(boxLabel, 0, Qt::AlignLeft | Qt::AlignTop);
     layoutOptions->addWidget(boxType, 0, Qt::AlignTop);
     layoutOptions->addWidget(checkColor, 0, Qt::AlignTop);
     layoutOptions->addWidget(buttonWritePdf, 0, Qt::AlignTop);
     layoutOptions->addWidget(buttonChooseDirectory, 0,  Qt::AlignRight | Qt::AlignTop);
-    layoutMain->addLayout(layoutOptions);
+
+
 
     setLayout(layoutMain);
 
@@ -112,6 +127,74 @@ MainWindow::MainWindow(QWidget *parent)
            &MainWindow::slotChooseDirectory
     );
 }
+
+// draft
+/*
+QBarSet *centralFedDistr = new QBarSet("Центральный");
+    QBarSet *northwesternDistr = new QBarSet("Северо-Западный");
+    QBarSet *southerhFedDistr = new QBarSet("Южный");
+    QBarSet *northCaucasianFedDistr = new QBarSet("Северо-Кавказский");
+    QBarSet *volgaFedDistr = new QBarSet("Приволжский");
+    QBarSet *uralFedDistr = new QBarSet("Уральский");
+    QBarSet *siberianFedDistr = new QBarSet("Сибирский");
+    QBarSet *farEasternFedDistr = new QBarSet("Дальневосточный");
+
+    *centralFedDistr        << 3378.83 << 3304.0 << 3261.0 << 2927.4;
+    *northwesternDistr      << 1261.83 << 1268.6 << 1253.4 << 1096.3;
+    *southerhFedDistr       << 823.45  << 821.8  << 781.5  << 821.6;
+    *northCaucasianFedDistr << 295.39  << 313.7  << 312.8  << 197.1;
+    *volgaFedDistr          << 2291.97 << 2312.6 << 2222.4 << 1992.1;
+    *uralFedDistr           << 921.92  << 891.5  << 862.1  << 834.8;
+    *siberianFedDistr       << 1349.41 << 1362.9 << 1313.8 << 1139.8;
+    *farEasternFedDistr     << 455.14  << 469.7  << 458.0  << 382.7;
+
+
+    QBarSeries *series = new QBarSeries();
+    series->append(centralFedDistr);
+    series->append(northwesternDistr);
+    series->append(southerhFedDistr);
+    series->append(northCaucasianFedDistr);
+    series->append(volgaFedDistr);
+    series->append(uralFedDistr);
+    series->append(siberianFedDistr);
+    series->append(farEasternFedDistr);
+
+    QList<QBarSet *> sets = series->barSets();
+    float currentHue = 0.0;
+    for(int i = 0; i < sets.size(); ++i)
+    {
+        QColor col = QColor::fromHslF(currentHue, 0.7, 0.5);
+        currentHue += 0.618033988749895f;
+        currentHue = std::fmod(currentHue, 1.0f);
+        sets[i]->setColor(col);
+    }
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle("Среднесписочная численность работников предприятий малого и среднего бизнеса по федеральным округам");
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+
+    QStringList categories;
+    categories << "01.01.2014" << "01.01.2015" << "01.01.2016" << "01.01.2017";
+    QBarCategoryAxis *axisX = new QBarCategoryAxis();
+    axisX->append(categories);
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    QValueAxis *axisY = new QValueAxis();
+    axisY->setRange(0,4000);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignRight);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    auto l  = new QHBoxLayout{this};
+    l->addWidget(chartView);
+    setLayout(l);
+*/
 
 // draw diagram
 
@@ -149,15 +232,16 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
     //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
 
     bool isExpectedFile = true
-            && filePath.endsWith(".sqlite")
-            && filePath.endsWith(".json");
+            && (filePath.endsWith(".sqlite")
+            || filePath.endsWith(".json"));
     if (!isExpectedFile)
     {
         messageBox{"Expect .json or .sqlite"};
+        return;
     }
 
     auto data = dataManipulation<type_file::unknown>{}.getData( " " );
-
+    qDebug() <<"File path:"<<filePath;
     if (filePath.endsWith(".sqlite"))
     {
         data = dataManipulation<type_file::sql>{}.getData(filePath);
@@ -167,10 +251,12 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
         data = dataManipulation<type_file::json>{}.getData(filePath);
     }
 
-    if (data.empty())
+    if (data.isEmpty())
     {
         messageBox{ "Data in file is empty" };
+        return;
     }
+    drawDiagram(data);
 }
 
 MainWindow::~MainWindow()
