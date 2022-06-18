@@ -61,8 +61,6 @@ MainWindow::MainWindow(QWidget *parent)
     auto layoutMain  = new QHBoxLayout{this};
     auto layoutOptions = new QHBoxLayout{};
     auto layoutVert = new QVBoxLayout{};
-    layoutVert->addLayout(layoutOptions);
-    layoutMain->addLayout(layoutVert);
 
     // declare buttons
     auto buttonChooseDirectory = new QPushButton{"Choose directory", this};
@@ -71,7 +69,6 @@ MainWindow::MainWindow(QWidget *parent)
     // declare splitter
     QSplitter *splitter = new QSplitter(Qt::Horizontal);
     QSplitter *vertSplitter = new QSplitter(Qt::Vertical);
-
 
     // declare combobox and setup for choose type of diagram
     QStringList diagrams = {"BarChart", "Pie"};
@@ -94,20 +91,17 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(tableView);
     vertSplitter->addWidget(chartManipulation.chartView);
 
-
     // layout setup
+    layoutOptions->stretch(1);
+    layoutOptions->addWidget(boxLabel, 1, Qt::AlignLeft | Qt::AlignTop);
+    layoutOptions->addWidget(boxType, 1, Qt::AlignLeft | Qt::AlignTop);
+    layoutOptions->addWidget(checkColor, 1,  Qt::AlignTop);
+    layoutOptions->addWidget(buttonWritePdf, 1,  Qt::AlignRight | Qt::AlignTop);
+    layoutOptions->addWidget(buttonChooseDirectory, 1,  Qt::AlignRight | Qt::AlignTop);
+    layoutVert->addLayout(layoutOptions);
     layoutMain->addWidget(splitter);
     layoutVert->addWidget(vertSplitter);
-
-    layoutOptions->stretch(1);
-    layoutOptions->addWidget(boxLabel, 0, Qt::AlignLeft | Qt::AlignTop);
-    layoutOptions->addWidget(boxType, 0, Qt::AlignTop);
-    layoutOptions->addWidget(checkColor, 0, Qt::AlignTop);
-    layoutOptions->addWidget(buttonWritePdf, 0, Qt::AlignTop);
-    layoutOptions->addWidget(buttonChooseDirectory, 0,  Qt::AlignRight | Qt::AlignTop);
-
-
-
+    layoutMain->addLayout(layoutVert);
     setLayout(layoutMain);
 
     QItemSelectionModel *selectionModel = tableView->selectionModel();
