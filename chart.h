@@ -47,22 +47,24 @@ struct pieChartDrawing : ChartDrawing
         chart->removeAllSeries();
         chart->addSeries(series);
         chart->createDefaultAxes();
-
     }
 };
 
 class Chart
 {
 public:
+
     Chart()
         : chart_{ new QChart() }
     {
-        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, pieChartDrawing>();
+        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
     }
+
     virtual ~Chart()
     {
         delete chart_;
     }
+
     QChart* getChart()
     {
         return chart_;

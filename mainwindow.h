@@ -23,6 +23,8 @@ private slots:
 
     void slotChooseDirectory();
 
+    void slotChooseChartDraw();
+
 private:
 
     void setupChart(const container& dataToDraw);
@@ -46,6 +48,8 @@ private:
     QFileSystemModel* fileModel;
 
     QTableView* tableView;
+
+    QComboBox* boxType;
 };
 
 #endif // MAINWINDOW_H

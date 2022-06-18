@@ -45,7 +45,6 @@
 #include "chart.h"
 #include <QValueAxis>
 
-
 int IOCContainer::s_typeId = 17;
 
 
@@ -53,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QWidget{ parent }
     , chartManipulation{ }
     , currentPath{ QDir::homePath() }
+    , boxType{ }
 {
     // Window setup
     setGeometry(80, 80, 1000, 600);
@@ -76,8 +76,8 @@ MainWindow::MainWindow(QWidget *parent)
     auto vertSplitter = new QSplitter(Qt::Vertical);
 
     // declare combobox and setup for choose type of diagram
-    QStringList diagrams = {"BarChart", "Pie"};
-    auto boxType = new QComboBox{};
+    QStringList diagrams = {"BarChart", "PieChart"};
+    boxType = new QComboBox{};
     auto boxLabel = new QLabel{"Choose type of diagram", this};
     boxType->addItems(diagrams);
 
@@ -126,6 +126,15 @@ MainWindow::MainWindow(QWidget *parent)
            this,
            &MainWindow::slotChooseDirectory
     );
+//    connect(comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(comboboxItemChanged(QString)));
+
+    connect(
+            boxType,
+            SIGNAL(currentTextChanged(const QString&)),
+            this,
+            SLOT(slotChooseChartDraw())
+    );
+
 }
 
 // draw diagram
@@ -133,10 +142,25 @@ void MainWindow::setupChart(const container& dataToDraw)
 {
     auto& chart = chartManipulation.chart;
     chart->drawChart("DEFAULT TITLE", dataToDraw);
-    chartManipulation.chartView->setChart(chartManipulation.chart->getChart());
+    chartManipulation.chartView->setChart(chart->getChart());
 }
 
 // slots
+
+void MainWindow::slotChooseChartDraw()
+{
+    QString chartType{boxType->currentText()};
+    if (chartType.compare("PieChart") == 0)
+    {
+        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, pieChartDrawing>();
+        return;
+    }
+    if (chartType.compare("BarChart") == 0)
+    {
+        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
+        return;
+    }
+}
 void MainWindow::slotChooseDirectory()
 {
     QFileDialog dialog{this};

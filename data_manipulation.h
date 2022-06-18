@@ -33,7 +33,7 @@ struct dataManipulation<type_file::sql>
 {
     container getData(const QString& path) const
     {
-        QSqlDatabase dbase {QSqlDatabase::addDatabase("QSQLITE")};
+        static QSqlDatabase dbase {QSqlDatabase::addDatabase("QSQLITE")};
         dbase.setDatabaseName(path);
         if (!dbase.open())
         {
