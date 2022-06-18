@@ -34,6 +34,7 @@ SOURCES += \
 HEADERS += \
      chart.h \
      data_manipulation.h \
+     ioc_container.h \
         mainwindow.h \
      message_box.h \
     themewidget.h

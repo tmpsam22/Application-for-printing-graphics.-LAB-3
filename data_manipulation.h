@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QtDebug>
 #include <QtSql>
+#include "message_box.h"
 
 using data = QPair<QString, double>;
 using container = QVector< QPair<QString, double> >;
@@ -26,8 +27,6 @@ struct dataManipulation
         return QVector<data>{};
     }
 };
-
-#include "message_box.h"
 
 template <>
 struct dataManipulation<type_file::sql>
