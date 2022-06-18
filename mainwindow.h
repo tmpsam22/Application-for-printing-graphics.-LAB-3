@@ -6,8 +6,10 @@
 #include <QFileSystemModel>
 #include <QTreeView>
 #include <QTableView>
+
 #include "themewidget.h"
 #include "chart.h"
+#include "data_manipulation.h"
 
 class MainWindow : public QWidget
 {
@@ -21,7 +23,12 @@ private slots:
 
     void slotChooseDirectory();
 
+private:
+
+    void setupChart(const container& dataToDraw);
+
 public:
+
     explicit MainWindow(QWidget *parent = nullptr);
 
 	~MainWindow();
