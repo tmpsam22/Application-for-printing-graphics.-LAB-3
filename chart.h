@@ -10,15 +10,25 @@
 struct ChartDrawing
 {
     virtual ~ChartDrawing() = default;
-    virtual void drawChart(const QString& title, const container& data) = 0;
+    virtual void drawChart(QChart* chart, const QString& title, const container& data) = 0;
 };
 
 struct barChartDrawing : ChartDrawing
 {
     ~barChartDrawing() override = default;
-    void drawChart(const QString& title, const container& data) override
+    void drawChart(QChart* chart, const QString& title, const container& data) override
     {
-
+        chart->setTitle(title);
+        QBarSeries *series = new QBarSeries{chart};
+        for (int i = 0; i < data.count(); i++)
+        {
+            QBarSet *set = new QBarSet{data[i].first};
+            *set << data[i].second;
+            series->append(set);
+        }
+        chart->removeAllSeries();
+        chart->addSeries(series);
+        chart->createDefaultAxes();
     }
 };
 
@@ -26,7 +36,19 @@ struct barChartDrawing : ChartDrawing
 struct pieChartDrawing : ChartDrawing
 {
     ~pieChartDrawing() override = default;
-    virtual void drawChart(const QString& title, const container& data) = 0;
+    void drawChart(QChart* chart, const QString& title, const container& data) override
+    {
+        chart->setTitle(title);
+        QPieSeries *series = new QPieSeries{chart};
+        for (int i = 0; i < data.count(); i++) {
+            series->append(data[i].first, data[i].second);
+            series->slices().at(i);
+        }
+        chart->removeAllSeries();
+        chart->addSeries(series);
+        chart->createDefaultAxes();
+
+    }
 };
 
 class Chart
@@ -35,8 +57,7 @@ public:
     Chart()
         : chart_{ new QChart() }
     {
-        // default chart
-        IOCContainer::IOCContainerInstance().RegisterInstance<QAbstractSeries, QBarSeries>();
+        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, pieChartDrawing>();
     }
     virtual ~Chart()
     {
@@ -46,13 +67,11 @@ public:
     {
         return chart_;
     }
-    void drawChart(const QString& title, const container& data);
 
-private:
-
-    template<typename T>
-    void setupChart(const QString&/*title*/, const container&/*data*/);
-
+    void drawChart(const QString& title, const container& data)
+    {
+        IOCContainer::IOCContainerInstance().GetObject<ChartDrawing>()->drawChart(chart_, title, data);
+    }
 private:
 
     QChart* chart_;

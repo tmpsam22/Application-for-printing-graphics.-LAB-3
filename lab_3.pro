@@ -26,7 +26,6 @@ DEFINES += DEBUG
 
 
 SOURCES += \
-     chart.cpp \
         main.cpp \
         mainwindow.cpp \
     themewidget.cpp
