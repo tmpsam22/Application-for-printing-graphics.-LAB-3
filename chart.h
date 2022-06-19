@@ -107,13 +107,20 @@ public:
         );
     }
 
+    void cleanSeries()
+    {
+        chart_->removeAllSeries();
+    }
+
     void switchColor()
     {
         isColorized_ = (isColorized_ == true) ? false : true;
     }
 
 private:
+
     bool isColorized_;
+
     QChart* chart_;
 };
 

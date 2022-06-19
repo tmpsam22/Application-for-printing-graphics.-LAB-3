@@ -43,9 +43,13 @@
 #include "data_manipulation.h"
 #include "message_box.h"
 #include "chart.h"
-#include <QValueAxis>
+#include <QPdfWriter>
 
 int IOCContainer::s_typeId = 17;
+
+namespace {
+    bool isChartAvailableToPrint = false;
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget{ parent }
@@ -131,6 +135,13 @@ MainWindow::MainWindow(QWidget *parent)
     );
 
     connect(
+            buttonWritePdf,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::slotSaveChartToPdf
+    );
+
+    connect(
             boxType,
             SIGNAL(currentTextChanged(const QString&)),
             this,
@@ -145,19 +156,40 @@ MainWindow::MainWindow(QWidget *parent)
     );
 
 }
+
 // slots
+
+// save chart to pdf format
+void MainWindow::slotSaveChartToPdf()
+{
+    bool ok = true;
+    QString text = QInputDialog::getText(
+                this,
+                tr("Save chart"),
+                tr("Enter .pdf name to save to current directory:"),
+                QLineEdit::Normal,
+                "output",
+                &ok
+    );
+
+    if (ok && isChartAvailableToPrint)
+    {
+        if (text.endsWith(".pdf"))
+        {
+            text = text.split(".pdf").first();
+        }
+        QPdfWriter writer_{currentPath + '/' + text + ".pdf"};
+        writer_.setCreator("Creator");
+        QPainter painter(&writer_);
+        chartManipulation.chartView->render(&painter);
+        painter.end();
+    }
+}
+
 // switched color check
 void MainWindow::slotColorSwitch()
 {
     chartManipulation.chart->switchColor();
-}
-
-// draw chart
-void MainWindow::setupChart(const container& dataToDraw)
-{
-    auto& chart = chartManipulation.chart;
-    chart->drawChart("DEFAULT TITLE", dataToDraw);
-    chartManipulation.chartView->setChart(chart->getChart());
 }
 
 void MainWindow::slotChooseChartDraw()
@@ -208,6 +240,8 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
             || filePath.endsWith(".json"));
     if (!isExpectedFile)
     {
+        chartManipulation.chart->cleanSeries();
+        isChartAvailableToPrint = false;
         messageBox{"Expect .json or .sqlite"};
         return;
     }
@@ -228,7 +262,11 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
         messageBox{ "Data in file is empty" };
         return;
     }
-    setupChart(data);
+
+    auto& chart = chartManipulation.chart;
+    chart->drawChart("TITLE", data);
+    chartManipulation.chartView->setChart(chart->getChart());
+    isChartAvailableToPrint = true;
 }
 
 MainWindow::~MainWindow()

@@ -24,9 +24,7 @@ private slots:
 
     void slotColorSwitch();
 
-private:
-
-    void setupChart(const container& dataToDraw);
+    void slotSaveChartToPdf();
 
 public:
 
