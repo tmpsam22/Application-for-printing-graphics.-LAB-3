@@ -26,6 +26,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+        chart.cpp \
         main.cpp \
         mainwindow.cpp
 HEADERS += \

@@ -8,7 +8,7 @@
 #include <QtSql>
 #include "message_box.h"
 
-using data = QPair<QString, double>;
+using dataInContainer = QPair<QString, double>;
 using container = QVector< QPair<QString, double> >;
 
 enum class type_file : int
@@ -24,7 +24,7 @@ struct dataManipulation
 {
     container getData(const QString&/*path*/) const
     {
-        return QVector<data>{};
+        return QVector<dataInContainer>{};
     }
 };
 
@@ -38,10 +38,10 @@ struct dataManipulation<type_file::sql>
         if (!dbase.open())
         {
             messageBox{ dbase.lastError().text() };
-            return QVector<data>{};
+            return QVector<dataInContainer>{};
         }
 
-        QVector<data> data_;
+        QVector<dataInContainer> data_;
         QSqlQuery query("SELECT * FROM " + dbase.tables().takeFirst());
         while (query.next())
         {
@@ -70,7 +70,7 @@ struct dataManipulation<type_file::json>
         if (!file.isOpen())
         {
             messageBox{ "File was not open!" };
-            return QVector<data>{};
+            return QVector<dataInContainer>{};
         }
 
         QString val;
@@ -80,11 +80,11 @@ struct dataManipulation<type_file::json>
         if (!doc.isArray())
         {
             messageBox{ "Expect json in an array" };
-            return QVector<data>{};
+            return QVector<dataInContainer>{};
         }
 
         auto array_ = doc.array();
-        QVector<data> data_;
+        QVector<dataInContainer> data_;
         foreach (const QJsonValue & value, array_)
         {
             QJsonObject obj = value.toObject();

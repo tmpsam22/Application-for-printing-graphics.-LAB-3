@@ -44,6 +44,7 @@
 #include "message_box.h"
 #include "chart.h"
 #include <QPdfWriter>
+#include <QSet>
 
 int IOCContainer::s_typeId = 17;
 
@@ -57,9 +58,17 @@ MainWindow::MainWindow(QWidget *parent)
     , currentPath{ QDir::homePath() }
     , boxType{ }
     , checkColor{ }
+    , labelsOutput {}
 {
     // Window setup
-    setGeometry(80, 80, 1000, 600);
+    setWindowTitle("PrintChart");
+    setGeometry(50, 50, 1200, 600);
+
+    // label setup
+    labelsOutput.labelPath = new QLabel{};
+    labelsOutput.labelInfo = new QLabel{};
+    labelsOutput.labelInfo->setText("Choose .sqllite or .json format files");
+    labelsOutput.labelPath->setText(labelsOutput.serialize(currentPath));
 
     // file model
     fileModel = new QFileSystemModel{this};
@@ -70,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent)
     auto layoutMain  = new QHBoxLayout{this};
     auto layoutOptions = new QHBoxLayout{};
     auto layoutVert = new QVBoxLayout{};
+    auto layoutVertDir = new QVBoxLayout{};
 
     // declare buttons
     auto buttonChooseDirectory = new QPushButton{"Choose directory", this};
@@ -94,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
     // declare chartManipulation
     chartManipulation.chart = new Chart{};
     chartManipulation.chartView = new QChartView{};
+    chartManipulation.chartView->setRenderHint(QPainter::Antialiasing);
 
     // table view
     tableView = new QTableView;
@@ -112,7 +123,12 @@ MainWindow::MainWindow(QWidget *parent)
     layoutOptions->addWidget(buttonWritePdf, 1,  Qt::AlignRight | Qt::AlignTop);
     layoutOptions->addWidget(buttonChooseDirectory, 1,  Qt::AlignRight | Qt::AlignTop);
     layoutVert->addLayout(layoutOptions);
-    layoutMain->addWidget(splitter);
+
+    layoutVertDir->addWidget(splitter, 1);
+    layoutVertDir->addWidget(labelsOutput.labelInfo, 0, Qt::AlignLeft | Qt::AlignBottom);
+    layoutVertDir->addWidget(labelsOutput.labelPath, 0, Qt::AlignLeft | Qt::AlignBottom);
+    layoutMain->addLayout(layoutVertDir);
+
     layoutVert->addWidget(vertSplitter);
     layoutMain->addLayout(layoutVert);
     setLayout(layoutMain);
@@ -216,8 +232,58 @@ void MainWindow::slotChooseDirectory()
     if ( dialog.exec() )
     {
         currentPath = dialog.selectedFiles().first();
+        labelsOutput.labelPath->setText(labelsOutput.serialize(currentPath));
     }
     tableView->setRootIndex(fileModel->setRootPath(currentPath));
+}
+
+namespace {
+
+const char* months[12] =
+{
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "June",
+    "July",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+};
+
+}
+
+container maxValuesInMonths(const container& data)
+{
+    QMap<QString, double> map_;
+    QRegularExpression regex("^(\\d+).(\\d+).");
+    for (auto& keyVal : data)
+    {
+        auto& date = keyVal.first;
+        auto month = months[(regex.match(date).captured(2).toInt() - 1)];
+        auto it = map_.find(month);
+
+        if (it == map_.end())
+        {
+            map_.insert(month, keyVal.second);
+            continue;
+        }
+        if (it.value() < keyVal.second)
+        {
+            it.value() = keyVal.second;
+        }
+    }
+    container data_;
+    for (auto it = map_.begin(); it != map_.end(); ++it)
+    {
+        data_.push_back(qMakePair(it.key(), it.value()));
+    }
+    return data_;
+    // return container{map_.begin(), map_.end()};
 }
 
 void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -233,8 +299,7 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
 
     QModelIndex ix =  indexs.constFirst();
     filePath = fileModel->filePath(ix);
-    // @todo: insert ioc container, status bar
-    //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
+
     bool isExpectedFile = true
             && (filePath.endsWith(".sqlite")
             || filePath.endsWith(".json"));
@@ -264,7 +329,10 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
     }
 
     auto& chart = chartManipulation.chart;
-    chart->drawChart("TITLE", data);
+    chart->drawChart(
+            "Max values in months",
+             maxValuesInMonths(data)
+    );
     chartManipulation.chartView->setChart(chart->getChart());
     isChartAvailableToPrint = true;
 }
