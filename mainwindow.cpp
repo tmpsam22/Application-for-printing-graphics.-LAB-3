@@ -47,12 +47,12 @@
 
 int IOCContainer::s_typeId = 17;
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QWidget{ parent }
     , chartManipulation{ }
     , currentPath{ QDir::homePath() }
     , boxType{ }
+    , checkColor{ }
 {
     // Window setup
     setGeometry(80, 80, 1000, 600);
@@ -76,13 +76,16 @@ MainWindow::MainWindow(QWidget *parent)
     auto vertSplitter = new QSplitter(Qt::Vertical);
 
     // declare combobox and setup for choose type of diagram
-    QStringList diagrams = {"BarChart", "PieChart"};
+    QStringList chartTypes = {"BarChart", "PieChart"};
     boxType = new QComboBox{};
     auto boxLabel = new QLabel{"Choose type of diagram", this};
-    boxType->addItems(diagrams);
+    boxType->addItems(chartTypes);
 
-    // declare checkBox for colorblind
-    auto checkColor = new QCheckBox("Show Title", this);
+    // declare default draw
+    IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
+
+    // declare checkBox
+    checkColor =new QCheckBox("Black&White", this);
 
     // declare chartManipulation
     chartManipulation.chart = new Chart{};
@@ -121,12 +124,11 @@ MainWindow::MainWindow(QWidget *parent)
     );
 
     connect(
-           buttonChooseDirectory,
-           &QPushButton::clicked,
-           this,
-           &MainWindow::slotChooseDirectory
+            buttonChooseDirectory,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::slotChooseDirectory
     );
-//    connect(comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(comboboxItemChanged(QString)));
 
     connect(
             boxType,
@@ -135,9 +137,22 @@ MainWindow::MainWindow(QWidget *parent)
             SLOT(slotChooseChartDraw())
     );
 
+    connect(
+            checkColor,
+            SIGNAL(clicked(bool)),
+            this,
+            SLOT(slotColorSwitch())
+    );
+
 }
 
-// draw diagram
+// switched color check
+void MainWindow::slotColorSwitch()
+{
+
+}
+
+// draw chart
 void MainWindow::setupChart(const container& dataToDraw)
 {
     auto& chart = chartManipulation.chart;

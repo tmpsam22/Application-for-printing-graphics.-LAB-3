@@ -25,6 +25,8 @@ private slots:
 
     void slotChooseChartDraw();
 
+    void slotColorSwitch();
+
 private:
 
     void setupChart(const container& dataToDraw);
@@ -50,6 +52,8 @@ private:
     QTableView* tableView;
 
     QComboBox* boxType;
+
+    QCheckBox* checkColor;
 };
 
 #endif // MAINWINDOW_H

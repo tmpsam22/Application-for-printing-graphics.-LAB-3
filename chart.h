@@ -57,7 +57,6 @@ public:
     Chart()
         : chart_{ new QChart() }
     {
-        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
     }
 
     virtual ~Chart()
@@ -74,6 +73,7 @@ public:
     {
         IOCContainer::IOCContainerInstance().GetObject<ChartDrawing>()->drawChart(chart_, title, data);
     }
+
 private:
 
     QChart* chart_;
