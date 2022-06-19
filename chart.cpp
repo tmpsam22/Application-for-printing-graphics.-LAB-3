@@ -62,8 +62,8 @@ void pieChartDrawing::drawChart(const chartParameters& chartParameter, const QSt
 }
 
 Chart::Chart()
-: isColorized_ { true }
-, chart_{ new QChart() }
+    : isColorized_ { true }
+    , chart_{ new QChart() }
 {
 }
 Chart::~Chart()

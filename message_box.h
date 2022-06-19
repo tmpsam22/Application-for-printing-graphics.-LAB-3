@@ -5,9 +5,10 @@
 
 struct messageBox
 {
-    explicit messageBox(QString const& message)
+    explicit messageBox(QString const& message, QString const& title="Info")
         : box_{ }
     {
+        box_.setWindowTitle(title);
         box_.setText(message);
         box_.exec();
     }

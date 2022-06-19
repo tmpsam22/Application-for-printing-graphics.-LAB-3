@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     , labelsOutput {}
 {
     // Window setup
+    setWindowTitle("PrintChart");
     setGeometry(50, 50, 1200, 600);
 
     // label setup
