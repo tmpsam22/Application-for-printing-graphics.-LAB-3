@@ -49,6 +49,16 @@ private:
     QComboBox* boxType;
 
     QCheckBox* checkColor;
+
+    struct
+    {
+        QString serialize(const QString& Path)
+        {
+            return QString{"Current path: " + Path};
+        }
+        QLabel* labelInfo;
+        QLabel* labelPath;
+    } labelsOutput;
 };
 
 #endif // MAINWINDOW_H
