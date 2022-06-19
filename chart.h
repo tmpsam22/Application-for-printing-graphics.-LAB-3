@@ -39,6 +39,8 @@ struct barChartDrawing : ChartDrawing
         }
         chartParameter.chart->removeAllSeries();
         chartParameter.chart->addSeries(series);
+        chartParameter.chart->setAnimationOptions(QChart::SeriesAnimations);
+        chartParameter.chart->legend()->setAlignment(Qt::AlignRight);
         chartParameter.chart->createDefaultAxes();
     }
 };
@@ -74,6 +76,8 @@ struct pieChartDrawing : ChartDrawing
         }
         chartParameter.chart->removeAllSeries();
         chartParameter.chart->addSeries(series);
+        chartParameter.chart->setAnimationOptions(QChart::SeriesAnimations);
+        chartParameter.chart->legend()->setAlignment(Qt::AlignRight);
         chartParameter.chart->createDefaultAxes();
     }
 };
