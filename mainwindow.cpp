@@ -34,138 +34,239 @@
 #include <QtWidgets/QLabel>
 #include <QtCore/QTime>
 #include <QtCharts/QBarCategoryAxis>
+#include <QSplitter>
+#include <QPushButton>
+#include <QListWidget>
+#include <QComboBox>
+#include <QLabel>
+#include <QFileDialog>
+#include "data_manipulation.h"
+#include "message_box.h"
+#include "chart.h"
+#include <QPdfWriter>
 
+int IOCContainer::s_typeId = 17;
 
+namespace {
+    bool isChartAvailableToPrint = false;
+}
 
 MainWindow::MainWindow(QWidget *parent)
-	: //QWidget(parent)
-	  QMainWindow(parent)
+    : QWidget{ parent }
+    , chartManipulation{ }
+    , currentPath{ QDir::homePath() }
+    , boxType{ }
+    , checkColor{ }
 {
-     themeWidget = new ThemeWidget();
-    //Устанавливаем размер главного окна
-	this->setGeometry(100, 100, 1500, 500);
-	this->setStatusBar(new QStatusBar(this));
-	this->statusBar()->showMessage("Choosen Path: ");
-	QString homePath = QDir::homePath();
-	// Определим  файловой системы:
-	dirModel =  new QFileSystemModel(this);
-	dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-	dirModel->setRootPath(homePath);
+    // Window setup
+    setGeometry(80, 80, 1000, 600);
 
-	fileModel = new QFileSystemModel(this);
-	fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
+    // file model
+    fileModel = new QFileSystemModel{this};
+    fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
+    fileModel->setRootPath(currentPath);
 
-	fileModel->setRootPath(homePath);
-	//Показать как дерево, пользуясь готовым видом:
+    // declare layots
+    auto layoutMain  = new QHBoxLayout{this};
+    auto layoutOptions = new QHBoxLayout{};
+    auto layoutVert = new QVBoxLayout{};
 
-	treeView = new QTreeView();
-	treeView->setModel(dirModel);
+    // declare buttons
+    auto buttonChooseDirectory = new QPushButton{"Choose directory", this};
+    auto buttonWritePdf = new QPushButton{"Save to PDF", this};
 
-	treeView->expandAll();
-	QSplitter *splitter = new QSplitter(parent);
-	tableView = new QTableView;
-	tableView->setModel(fileModel);
-	splitter->addWidget(treeView);
-    //splitter->addWidget(tableView);
+    // declare splitter
+    auto splitter = new QSplitter(Qt::Horizontal);
+    auto vertSplitter = new QSplitter(Qt::Vertical);
 
-//1.Добавление диаграммы
-     QChartView *chartView;
-     QChart *chartBar =  themeWidget->createBarChart(5);
-     chartView = new QChartView(chartBar);
+    // declare combobox and setup for choose type of chart
+    QStringList chartTypes = {"BarChart", "PieChart"};
+    boxType = new QComboBox{};
+    auto boxLabel = new QLabel{"Choose type of diagram", this};
+    boxType->addItems(chartTypes);
 
-    //splitter->addWidget(themeWidget);
-    //splitter->addWidget(chartView);
-    splitter->addWidget(chartView);
-	setCentralWidget(splitter);
+    // declare default draw
+    IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
 
-    QItemSelectionModel *selectionModel = treeView->selectionModel();
-	QModelIndex rootIx = dirModel->index(0, 0, QModelIndex());//корневой элемент
+    // declare checkBox
+    checkColor = new QCheckBox("Black&White", this);
 
-	QModelIndex indexHomePath = dirModel->index(homePath);
-	QFileInfo fileInfo = dirModel->fileInfo(indexHomePath);
+    // declare chartManipulation
+    chartManipulation.chart = new Chart{};
+    chartManipulation.chartView = new QChartView{};
 
-	/* Рассмотрим способы обхода содержимого папок на диске.
-	 * Предлагается вариант решения, которы может быть применен для более сложных задач.
-	 * Итак, если требуется выполнить анализ содержимого папки, то необходимо организовать обход содержимого. Обход выполняем относительно модельного индекса.
-	 * Например:*/
-	if (fileInfo.isDir()) {
-		/*
-		 * Если fileInfo папка то заходим в нее, что бы просмотреть находящиеся в ней файлы.
-		 * Если нужно просмотреть все файлы, включая все вложенные папки, то нужно организовать рекурсивный обход.
-		*/
-		QDir dir  = fileInfo.dir();
+    // table view
+    tableView = new QTableView;
+    tableView->setModel(fileModel);
+    tableView->setRootIndex(fileModel->setRootPath(currentPath));
 
-		if (dir.cd(fileInfo.fileName())) {
-			/**
-			 * Если зашли в папку, то пройдемся по контейнеру QFileInfoList ,полученного методом entryInfoList,
-			 * */
+    // splitter setup
+    splitter->addWidget(tableView);
+    vertSplitter->addWidget(chartManipulation.chartView);
 
-			foreach (QFileInfo inf, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Type)) {
-				qDebug() << inf.fileName() << "---" << inf.size();
-			}
+    // layout setup
+    layoutOptions->stretch(1);
+    layoutOptions->addWidget(boxLabel, 1, Qt::AlignLeft | Qt::AlignTop);
+    layoutOptions->addWidget(boxType, 1, Qt::AlignLeft | Qt::AlignTop);
+    layoutOptions->addWidget(checkColor, 1,  Qt::AlignTop);
+    layoutOptions->addWidget(buttonWritePdf, 1,  Qt::AlignRight | Qt::AlignTop);
+    layoutOptions->addWidget(buttonChooseDirectory, 1,  Qt::AlignRight | Qt::AlignTop);
+    layoutVert->addLayout(layoutOptions);
+    layoutMain->addWidget(splitter);
+    layoutVert->addWidget(vertSplitter);
+    layoutMain->addLayout(layoutVert);
+    setLayout(layoutMain);
 
-			dir.cdUp();//выходим из папки
-		}
-	}
+    QItemSelectionModel *selectionModel = tableView->selectionModel();
 
-	QDir dir = fileInfo.dir();
+    // setup signals
+    connect(
+            selectionModel,
+            SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this,
+            SLOT(slotSelectionChanged(const QItemSelection &, const QItemSelection &))
+    );
 
-	foreach (QFileInfo inf, dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::Type)) {
+    connect(
+            buttonChooseDirectory,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::slotChooseDirectory
+    );
 
-		qDebug() << inf.fileName() << "---" << inf.size();
-	}
+    connect(
+            buttonWritePdf,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::slotSaveChartToPdf
+    );
 
+    connect(
+            boxType,
+            SIGNAL(currentTextChanged(const QString&)),
+            this,
+            SLOT(slotChooseChartDraw())
+    );
 
-	treeView->header()->resizeSection(0, 200);
-	//Выполняем соединения слота и сигнала который вызывается когда осуществляется выбор элемента в TreeView
-	connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-			this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
-	//Пример организации установки курсора в TreeView относит ельно модельного индекса
-	QItemSelection toggleSelection;
-	QModelIndex topLeft;
-	topLeft = dirModel->index(homePath);
-	dirModel->setRootPath(homePath);
+    connect(
+            checkColor,
+            SIGNAL(clicked()),
+            this,
+            SLOT(slotColorSwitch())
+    );
 
-	toggleSelection.select(topLeft, topLeft);
-	selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
 }
-//Слот для обработки выбора элемента в TreeView
-//выбор осуществляется с помощью курсора
 
-void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
+// slots
+
+// save chart to pdf format
+void MainWindow::slotSaveChartToPdf()
 {
-	//Q_UNUSED(selected);
-	Q_UNUSED(deselected);
-	QModelIndex index = treeView->selectionModel()->currentIndex();
-	QModelIndexList indexs =  selected.indexes();
-	QString filePath = "";
+    bool ok = true;
+    QString text = QInputDialog::getText(
+                this,
+                tr("Save chart"),
+                tr("Enter .pdf name to save to current directory:"),
+                QLineEdit::Normal,
+                "output",
+                &ok
+    );
 
-	// Размещаем инфо в statusbar относительно выделенного модельного индекса
+    if (ok && isChartAvailableToPrint)
+    {
+        if (text.endsWith(".pdf"))
+        {
+            text = text.split(".pdf").first();
+        }
+        QPdfWriter writer_{currentPath + '/' + text + ".pdf"};
+        writer_.setCreator("Creator");
+        QPainter painter(&writer_);
+        chartManipulation.chartView->render(&painter);
+        painter.end();
+    }
+}
 
-	if (indexs.count() >= 1) {
-		QModelIndex ix =  indexs.constFirst();
-		filePath = dirModel->filePath(ix);
-		this->statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
-	}
+// switched color check
+void MainWindow::slotColorSwitch()
+{
+    chartManipulation.chart->switchColor();
+}
 
-	//TODO: !!!!!
-	/*
-	Тут простейшая обработка ширины первого столбца относительно длины названия папки.
-	Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
-	Требуется доработка(переработка).
-	*/
-	int length = 200;
-	int dx = 30;
+void MainWindow::slotChooseChartDraw()
+{
+    QString chartType{boxType->currentText()};
+    if (chartType.compare("PieChart") == 0)
+    {
+        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, pieChartDrawing>();
+        return;
+    }
+    if (chartType.compare("BarChart") == 0)
+    {
+        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
+        return;
+    }
+    messageBox{"there is no implementation for this type: "
+               + chartType};
+}
 
-	if (dirModel->fileName(index).length() * dx > length) {
-		length = length + dirModel->fileName(index).length() * dx;
-		qDebug() << "r = " << index.row() << "c = " << index.column() << dirModel->fileName(index) << dirModel->fileInfo(
-					 index).size();
+void MainWindow::slotChooseDirectory()
+{
+    QFileDialog dialog{this};
+    dialog.setFileMode(QFileDialog::Directory);
+    if ( dialog.exec() )
+    {
+        currentPath = dialog.selectedFiles().first();
+    }
+    tableView->setRootIndex(fileModel->setRootPath(currentPath));
+}
 
-	}
+void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    Q_UNUSED(deselected);
+    QModelIndexList indexs =  selected.indexes();
+    QString filePath = "";
 
-	treeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-	tableView->setRootIndex(fileModel->setRootPath(filePath));
+    if (indexs.count() < 1)
+    {
+        return;
+    }
+
+    QModelIndex ix =  indexs.constFirst();
+    filePath = fileModel->filePath(ix);
+    // @todo: insert ioc container, status bar
+    //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
+    bool isExpectedFile = true
+            && (filePath.endsWith(".sqlite")
+            || filePath.endsWith(".json"));
+    if (!isExpectedFile)
+    {
+        chartManipulation.chart->cleanSeries();
+        isChartAvailableToPrint = false;
+        messageBox{"Expect .json or .sqlite"};
+        return;
+    }
+
+    auto data = dataManipulation<type_file::unknown>{}.getData( " " );
+
+    if (filePath.endsWith(".sqlite"))
+    {
+        data = dataManipulation<type_file::sql>{}.getData(filePath);
+    }
+    if (filePath.endsWith(".json"))
+    {
+        data = dataManipulation<type_file::json>{}.getData(filePath);
+    }
+
+    if (data.isEmpty())
+    {
+        messageBox{ "Data in file is empty" };
+        return;
+    }
+
+    auto& chart = chartManipulation.chart;
+    chart->drawChart("TITLE", data);
+    chartManipulation.chartView->setChart(chart->getChart());
+    isChartAvailableToPrint = true;
 }
 
 MainWindow::~MainWindow()

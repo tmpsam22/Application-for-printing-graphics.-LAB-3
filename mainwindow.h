@@ -6,24 +6,49 @@
 #include <QFileSystemModel>
 #include <QTreeView>
 #include <QTableView>
-#include "themewidget.h"
+#include "chart.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
 	Q_OBJECT
 private slots:
 
-	void on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected);
+    void slotSelectionChanged(
+            const QItemSelection &selected,
+            const QItemSelection &deselected
+    );
+
+    void slotChooseDirectory();
+
+    void slotChooseChartDraw();
+
+    void slotColorSwitch();
+
+    void slotSaveChartToPdf();
 
 public:
-	MainWindow(QWidget *parent = 0);
-	~MainWindow();
+
+    explicit MainWindow(QWidget *parent = nullptr);
+
+    ~MainWindow();
+
 private:
-	QFileSystemModel *fileModel;
-	QFileSystemModel *dirModel;
-	QTreeView *treeView;
-	QTableView *tableView;
-    ThemeWidget *themeWidget;
+
+    struct
+    {
+        Chart* chart;
+        QChartView* chartView;
+    } chartManipulation;
+
+    QString currentPath;
+
+    QFileSystemModel* fileModel;
+
+    QTableView* tableView;
+
+    QComboBox* boxType;
+
+    QCheckBox* checkColor;
 };
 
 #endif // MAINWINDOW_H
