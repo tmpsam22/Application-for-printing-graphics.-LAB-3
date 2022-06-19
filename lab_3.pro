@@ -27,13 +27,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp \
-    themewidget.cpp
-
+        mainwindow.cpp
 HEADERS += \
      chart.h \
      data_manipulation.h \
      ioc_container.h \
         mainwindow.h \
      message_box.h \
-    themewidget.h

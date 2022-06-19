@@ -75,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     auto splitter = new QSplitter(Qt::Horizontal);
     auto vertSplitter = new QSplitter(Qt::Vertical);
 
-    // declare combobox and setup for choose type of diagram
+    // declare combobox and setup for choose type of chart
     QStringList chartTypes = {"BarChart", "PieChart"};
     boxType = new QComboBox{};
     auto boxLabel = new QLabel{"Choose type of diagram", this};
@@ -85,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
     IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
 
     // declare checkBox
-    checkColor =new QCheckBox("Black&White", this);
+    checkColor = new QCheckBox("Black&White", this);
 
     // declare chartManipulation
     chartManipulation.chart = new Chart{};
@@ -139,17 +139,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(
             checkColor,
-            SIGNAL(clicked(bool)),
+            SIGNAL(clicked()),
             this,
             SLOT(slotColorSwitch())
     );
 
 }
-
+// slots
 // switched color check
 void MainWindow::slotColorSwitch()
 {
-
+    chartManipulation.chart->switchColor();
 }
 
 // draw chart
@@ -159,8 +159,6 @@ void MainWindow::setupChart(const container& dataToDraw)
     chart->drawChart("DEFAULT TITLE", dataToDraw);
     chartManipulation.chartView->setChart(chart->getChart());
 }
-
-// slots
 
 void MainWindow::slotChooseChartDraw()
 {
@@ -175,7 +173,10 @@ void MainWindow::slotChooseChartDraw()
         IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
         return;
     }
+    messageBox{"there is no implementation for this type: "
+               + chartType};
 }
+
 void MainWindow::slotChooseDirectory()
 {
     QFileDialog dialog{this};
@@ -202,7 +203,6 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
     filePath = fileModel->filePath(ix);
     // @todo: insert ioc container, status bar
     //statusBar()->showMessage("Выбранный путь : " + dirModel->filePath(indexs.constFirst()));
-
     bool isExpectedFile = true
             && (filePath.endsWith(".sqlite")
             || filePath.endsWith(".json"));

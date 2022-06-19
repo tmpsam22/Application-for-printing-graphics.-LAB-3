@@ -6,10 +6,7 @@
 #include <QFileSystemModel>
 #include <QTreeView>
 #include <QTableView>
-
-#include "themewidget.h"
 #include "chart.h"
-#include "data_manipulation.h"
 
 class MainWindow : public QWidget
 {
