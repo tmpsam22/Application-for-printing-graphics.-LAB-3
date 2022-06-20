@@ -2,7 +2,6 @@
 
 void barChartDrawing::drawChart(const chartParameters& chartParameter)
 {
-    chartParameter.chart_->setTitle(chartParameter.title_);
     QBarSeries *series = new QBarSeries{chartParameter.chart_};
     for (int i = 0; i < chartParameter.data_.count(); i++)
     {
@@ -24,10 +23,9 @@ void barChartDrawing::drawChart(const chartParameters& chartParameter)
 
 void pieChartDrawing::drawChart(const chartParameters& chartParameter)
 {
-    chartParameter.chart_->setTitle(chartParameter.title_);
     QPieSeries *series = new QPieSeries{chartParameter.chart_};
-
     auto dataCount = chartParameter.data_.count();
+
     bool isOdd = false;
     if (!chartParameter.isColorized_ && (dataCount % 2))
     {
@@ -66,12 +64,12 @@ QChart* Chart::getChart()
 void Chart::setData(const container& data)
 {
     chartParameters_.data_ = data;
-    drawChart();
 }
 
 void Chart::setTitle(const QString& title)
 {
     chartParameters_.title_ = title;
+    chartParameters_.chart_->setTitle(chartParameters_.title_);
 }
 
 void Chart::drawChart() const
@@ -83,8 +81,8 @@ void Chart::drawChart() const
 
 void Chart::drawChart(const QString& title, const container& data)
 {
-    setData(data);
     setTitle(title);
+    setData(data);
     drawChart();
 }
 

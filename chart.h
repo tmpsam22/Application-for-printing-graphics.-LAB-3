@@ -69,11 +69,11 @@ public:
 
     void switchColor();
 
+private:
+
     void setTitle(const QString& title);
 
     void setData(const container& data);
-
-private:
 
     void drawChart() const;
 
