@@ -58,41 +58,30 @@ void pieChartDrawing::drawChart(const chartParameters& chartParameter)
 
 QChart* Chart::getChart()
 {
-    return chartParameters_.chart_;
-}
-
-void Chart::setData(const container& data)
-{
-    chartParameters_.data_ = data;
-}
-
-void Chart::setTitle(const QString& title)
-{
-    chartParameters_.title_ = title;
-    chartParameters_.chart_->setTitle(chartParameters_.title_);
+    return parameters_.chart_;
 }
 
 void Chart::drawChart() const
 {
     IOCContainer::IOCContainerInstance().GetObject<ChartDrawing>()->drawChart(
-        chartParameters_
+        parameters_
     );
 }
 
 void Chart::drawChart(const QString& title, const container& data)
 {
-    setTitle(title);
-    setData(data);
+    parameters_.chart_->setTitle(title);
+    parameters_.data_ = data;
     drawChart();
 }
 
 void Chart::cleanSeries()
 {
-    chartParameters_.chart_->removeAllSeries();
+    parameters_.chart_->removeAllSeries();
 }
 
 void Chart::switchColor()
 {
-    chartParameters_.isColorized_ = (chartParameters_.isColorized_ == true) ? false : true;
+    parameters_.isColorized_ = (parameters_.isColorized_ == true) ? false : true;
     drawChart();
 }
