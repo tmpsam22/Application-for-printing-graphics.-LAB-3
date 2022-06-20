@@ -12,28 +12,54 @@ struct chartParameters;
 struct ChartDrawing
 {
     virtual ~ChartDrawing() = default;
-    virtual void drawChart(const chartParameters& chartParameter, const QString& title, const container& data) = 0;
+    virtual void drawChart(const chartParameters& chartParameter) = 0;
 };
 
 struct barChartDrawing : ChartDrawing
 {
     ~barChartDrawing() override = default;
-    void drawChart(const chartParameters& chartParameter, const QString& title, const container& data) override;
+    void drawChart(const chartParameters& chartParameter) override;
 };
 
 struct pieChartDrawing : ChartDrawing
 {
     ~pieChartDrawing() override = default;
-    void drawChart(const chartParameters& chartParameter, const QString& title, const container& data) override;
+    void drawChart(const chartParameters& chartParameter) override;
 };
+
+
+struct chartParameters
+{
+    bool isColorized_;
+
+    QChart* chart_;
+
+    container data_;
+
+    QString title_;
+
+    chartParameters()
+        : isColorized_{ true }
+        , chart_{ new QChart{} }
+        , data_{ }
+        , title_{ "default"}
+    {
+
+    }
+    ~chartParameters()
+    {
+        delete chart_;
+    }
+};
+
 
 class Chart
 {
 public:
 
-    Chart();
+    Chart() = default;
 
-    virtual ~Chart();
+    virtual ~Chart() = default;
 
     QChart* getChart();
 
@@ -43,11 +69,17 @@ public:
 
     void switchColor();
 
+    void setTitle(const QString& title);
+
+    void setData(const container& data);
+
 private:
 
-    bool isColorized_;
+    void drawChart() const;
 
-    QChart* chart_;
+private:
+
+    chartParameters chartParameters_;
 };
 
 
