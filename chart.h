@@ -27,7 +27,6 @@ struct pieChartDrawing : ChartDrawing
     void drawChart(const chartParameters& chartParameter) override;
 };
 
-
 struct chartParameters
 {
     bool isColorized_;
@@ -36,22 +35,19 @@ struct chartParameters
 
     container data_;
 
-    QString title_;
-
     chartParameters()
         : isColorized_{ true }
-        , chart_{ new QChart{} }
+        , chart_{ new QChart() }
         , data_{ }
-        , title_{ "default"}
     {
 
     }
+
     ~chartParameters()
     {
         delete chart_;
     }
 };
-
 
 class Chart
 {
@@ -71,15 +67,11 @@ public:
 
 private:
 
-    void setTitle(const QString& title);
-
-    void setData(const container& data);
-
     void drawChart() const;
 
 private:
 
-    chartParameters chartParameters_;
+    chartParameters parameters_;
 };
 
 
