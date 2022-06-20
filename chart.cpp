@@ -1,49 +1,44 @@
 #include "chart.h"
 
-struct chartParameters
+void barChartDrawing::drawChart(const chartParameters& chartParameter)
 {
-    bool isColorized;
-    QChart* chart;
-};
-
-void barChartDrawing::drawChart(const chartParameters& chartParameter, const QString& title, const container& data)
-{
-    chartParameter.chart->setTitle(title);
-    QBarSeries *series = new QBarSeries{chartParameter.chart};
-    for (int i = 0; i < data.count(); i++)
+    QBarSeries *series = new QBarSeries{chartParameter.chart_};
+    for (int i = 0; i < chartParameter.data_.count(); i++)
     {
-        QBarSet *set = new QBarSet{data[i].first};
-        if (!chartParameter.isColorized)
+        QBarSet *set = new QBarSet{chartParameter.data_[i].first};
+        if (!chartParameter.isColorized_)
         {
             auto color_ = i % 2 ? Qt::black : Qt::gray;
             set->setBrush(QBrush(color_, Qt::SolidPattern));
         }
-        *set << data[i].second;
+        *set << chartParameter.data_[i].second;
         series->append(set);
     }
-    chartParameter.chart->removeAllSeries();
-    chartParameter.chart->addSeries(series);
-    chartParameter.chart->setAnimationOptions(QChart::SeriesAnimations);
-    chartParameter.chart->legend()->setAlignment(Qt::AlignRight);
-    chartParameter.chart->createDefaultAxes();
+    chartParameter.chart_->removeAllSeries();
+    chartParameter.chart_->addSeries(series);
+    chartParameter.chart_->setAnimationOptions(QChart::SeriesAnimations);
+    chartParameter.chart_->legend()->setAlignment(Qt::AlignRight);
+    chartParameter.chart_->createDefaultAxes();
 }
 
-void pieChartDrawing::drawChart(const chartParameters& chartParameter, const QString& title, const container& data)
+void pieChartDrawing::drawChart(const chartParameters& chartParameter)
 {
-    chartParameter.chart->setTitle(title);
-    QPieSeries *series = new QPieSeries{chartParameter.chart};
+    QPieSeries *series = new QPieSeries{chartParameter.chart_};
+    auto dataCount = chartParameter.data_.count();
 
-    auto dataCount = data.count();
     bool isOdd = false;
-    if (!chartParameter.isColorized && (dataCount % 2))
+    if (!chartParameter.isColorized_ && (dataCount % 2))
     {
         isOdd = true;
     }
 
     for (int i = 0; i < dataCount; i++)
     {
-        series->append(data[i].first, data[i].second);
-        if (!chartParameter.isColorized)
+        series->append(
+                    chartParameter.data_[i].first,
+                    chartParameter.data_[i].second
+        );
+        if (!chartParameter.isColorized_)
         {
             auto color_ = i % 2 ? Qt::black : Qt::gray;
             if (isOdd && (i == dataCount - 1))
@@ -54,43 +49,50 @@ void pieChartDrawing::drawChart(const chartParameters& chartParameter, const QSt
         }
         series->slices().at(i);
     }
-    chartParameter.chart->removeAllSeries();
-    chartParameter.chart->addSeries(series);
-    chartParameter.chart->setAnimationOptions(QChart::SeriesAnimations);
-    chartParameter.chart->legend()->setAlignment(Qt::AlignRight);
-    chartParameter.chart->createDefaultAxes();
-}
-
-Chart::Chart()
-    : isColorized_ { true }
-    , chart_{ new QChart() }
-{
-}
-Chart::~Chart()
-{
-    delete chart_;
+    chartParameter.chart_->removeAllSeries();
+    chartParameter.chart_->addSeries(series);
+    chartParameter.chart_->setAnimationOptions(QChart::SeriesAnimations);
+    chartParameter.chart_->legend()->setAlignment(Qt::AlignRight);
+    chartParameter.chart_->createDefaultAxes();
 }
 
 QChart* Chart::getChart()
 {
-    return chart_;
+    return chartParameters_.chart_;
+}
+
+void Chart::setData(const container& data)
+{
+    chartParameters_.data_ = data;
+}
+
+void Chart::setTitle(const QString& title)
+{
+    chartParameters_.title_ = title;
+    chartParameters_.chart_->setTitle(chartParameters_.title_);
+}
+
+void Chart::drawChart() const
+{
+    IOCContainer::IOCContainerInstance().GetObject<ChartDrawing>()->drawChart(
+        chartParameters_
+    );
 }
 
 void Chart::drawChart(const QString& title, const container& data)
 {
-    IOCContainer::IOCContainerInstance().GetObject<ChartDrawing>()->drawChart(
-                {isColorized_, chart_},
-                title,
-                data
-    );
+    setTitle(title);
+    setData(data);
+    drawChart();
 }
 
 void Chart::cleanSeries()
 {
-    chart_->removeAllSeries();
+    chartParameters_.chart_->removeAllSeries();
 }
 
 void Chart::switchColor()
 {
-    isColorized_ = (isColorized_ == true) ? false : true;
+    chartParameters_.isColorized_ = (chartParameters_.isColorized_ == true) ? false : true;
+    drawChart();
 }
