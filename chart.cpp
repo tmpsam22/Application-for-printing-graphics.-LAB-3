@@ -61,7 +61,7 @@ QChart* Chart::getChart()
     return parameters_.chart_;
 }
 
-void Chart::drawChart() const
+void Chart::reDrawChart() const
 {
     IOCContainer::IOCContainerInstance().GetObject<ChartDrawing>()->drawChart(
         parameters_
@@ -72,7 +72,7 @@ void Chart::drawChart(const QString& title, const container& data)
 {
     parameters_.chart_->setTitle(title);
     parameters_.data_ = data;
-    drawChart();
+    reDrawChart();
 }
 
 void Chart::cleanSeries()
@@ -83,5 +83,4 @@ void Chart::cleanSeries()
 void Chart::switchColor()
 {
     parameters_.isColorized_ = (parameters_.isColorized_ == true) ? false : true;
-    drawChart();
 }

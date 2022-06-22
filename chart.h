@@ -61,13 +61,11 @@ public:
 
     void drawChart(const QString& title, const container& data);
 
+    void reDrawChart() const;
+
     void cleanSeries();
 
     void switchColor();
-
-private:
-
-    void drawChart() const;
 
 private:
 

@@ -48,8 +48,11 @@
 
 int IOCContainer::s_typeId = 17;
 
-namespace {
-    bool isChartAvailableToPrint = false;
+namespace
+{
+
+bool isChartAvailableToPrint = false;
+
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -178,34 +181,32 @@ MainWindow::MainWindow(QWidget *parent)
 // save chart to pdf format
 void MainWindow::slotSaveChartToPdf()
 {
-    bool ok = true;
-    QString text = QInputDialog::getText(
-                this,
-                tr("Save chart"),
-                tr("Enter .pdf name to save to current directory:"),
-                QLineEdit::Normal,
-                "output",
-                &ok
-    );
-
-    if (ok && isChartAvailableToPrint)
-    {
-        if (text.endsWith(".pdf"))
+   if (isChartAvailableToPrint)
+   {
+        QFileDialog dialog{this};
+        dialog.setDirectory(currentPath);
+        dialog.setAcceptMode(QFileDialog::AcceptSave);
+        auto path = dialog.getSaveFileUrl().path();
+        if (path.endsWith(".pdf"))
         {
-            text = text.split(".pdf").first();
+            path = path.split(".pdf").first();
         }
-        QPdfWriter writer_{currentPath + '/' + text + ".pdf"};
+
+        QPdfWriter writer_{path + ".pdf"};
         writer_.setCreator("Creator");
         QPainter painter(&writer_);
         chartManipulation.chartView->render(&painter);
         painter.end();
+        return;
     }
+    messageBox{"There is no chart to save .pdf format"};
 }
 
 // switched color check
 void MainWindow::slotColorSwitch()
 {
     chartManipulation.chart->switchColor();
+    chartManipulation.chart->reDrawChart();
 }
 
 void MainWindow::slotChooseChartDraw()
@@ -214,11 +215,13 @@ void MainWindow::slotChooseChartDraw()
     if (chartType.compare("PieChart") == 0)
     {
         IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, pieChartDrawing>();
+        chartManipulation.chart->reDrawChart();
         return;
     }
     if (chartType.compare("BarChart") == 0)
     {
         IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
+        chartManipulation.chart->reDrawChart();
         return;
     }
     messageBox{"there is no implementation for this type: "
@@ -237,7 +240,8 @@ void MainWindow::slotChooseDirectory()
     tableView->setRootIndex(fileModel->setRootPath(currentPath));
 }
 
-namespace {
+namespace
+{
 
 const char* months[12] =
 {
@@ -280,7 +284,12 @@ container maxValuesInMonths(const container& data)
     container data_;
     for (auto it = map_.begin(); it != map_.end(); ++it)
     {
-        data_.push_back(qMakePair(it.key(), it.value()));
+        data_.push_back(
+                    qMakePair(
+                        it.key(),
+                        it.value()
+                    )
+        );
     }
     return data_;
     // return container{map_.begin(), map_.end()};
@@ -290,15 +299,13 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
 {
     Q_UNUSED(deselected);
     QModelIndexList indexs =  selected.indexes();
-    QString filePath = "";
-
     if (indexs.count() < 1)
     {
         return;
     }
 
-    QModelIndex ix =  indexs.constFirst();
-    filePath = fileModel->filePath(ix);
+    QString filePath{""};
+    filePath = fileModel->filePath(indexs.constFirst());
 
     bool isExpectedFile = true
             && (filePath.endsWith(".sqlite")
