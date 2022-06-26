@@ -28,6 +28,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         chart.cpp \
         chart_drawing_impls.cpp \
+        data_manipulation.cpp \
         main.cpp \
         mainwindow.cpp
 HEADERS += \

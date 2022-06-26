@@ -314,22 +314,7 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
         return;
     }
 
-    auto data = dataManipulation<type_file::unknown>{}.getData( " " );
-
-    if (filePath.endsWith(".sqlite"))
-    {
-        data = dataManipulation<type_file::sql>{}.getData(filePath);
-    }
-    if (filePath.endsWith(".json"))
-    {
-        data = dataManipulation<type_file::json>{}.getData(filePath);
-    }
-
-    if (data.isEmpty())
-    {
-        messageBox{ "Data in file is empty" };
-        return;
-    }
+    auto data = data_manipulation::getData(filePath);
 
     auto& chart = chartManipulation.chart;
     chart->drawChart(

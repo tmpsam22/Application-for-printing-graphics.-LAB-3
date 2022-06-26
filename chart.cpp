@@ -21,6 +21,11 @@ QChart* Chart::getChart()
 
 void Chart::reDrawChart() const
 {
+    if (data_.isEmpty())
+    {
+        qDebug() << "Can't draw a chart: data is empty";
+        return;
+    }
     getChartDrawing()->drawChart(
         chart_,
         data_,
