@@ -42,11 +42,9 @@
 #include <QFileDialog>
 #include "data_manipulation.h"
 #include "message_box.h"
-#include "chart.h"
+#include "chart_drawing_impls.h"
 #include <QPdfWriter>
 #include <QSet>
-
-int IOCContainer::s_typeId = 17;
 
 namespace
 {
@@ -99,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
     boxType->addItems(chartTypes);
 
     // declare default draw
-    IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
+    setChartDrawing(chart_type::bar);
 
     // declare checkBox
     checkColor = new QCheckBox("Black&White", this);
@@ -214,13 +212,13 @@ void MainWindow::slotChooseChartDraw()
     QString chartType{boxType->currentText()};
     if (chartType.compare("PieChart") == 0)
     {
-        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, pieChartDrawing>();
+        setChartDrawing(chart_type::pie);
         chartManipulation.chart->reDrawChart();
         return;
     }
     if (chartType.compare("BarChart") == 0)
     {
-        IOCContainer::IOCContainerInstance().RegisterInstance<ChartDrawing, barChartDrawing>();
+        setChartDrawing(chart_type::bar);
         chartManipulation.chart->reDrawChart();
         return;
     }

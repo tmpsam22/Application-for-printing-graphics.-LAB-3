@@ -1,15 +1,11 @@
 #ifndef DATA_MANIPULATION_H
 #define DATA_MANIPULATION_H
 
-#include <QString>
-#include <QPair>
-#include <QVector>
 #include <QtDebug>
 #include <QtSql>
-#include "message_box.h"
 
-using dataInContainer = QPair<QString, double>;
-using container = QVector< QPair<QString, double> >;
+#include "message_box.h"
+#include "common_container.h"
 
 enum class type_file : int
 {
@@ -106,4 +102,5 @@ struct dataManipulation<type_file::json>
         return data_;
     }
 };
+
 #endif // DATA_MANIPULATION_H

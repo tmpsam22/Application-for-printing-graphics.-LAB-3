@@ -6,6 +6,7 @@
 #include <QFileSystemModel>
 #include <QTreeView>
 #include <QTableView>
+#include <QtCharts>
 #include "chart.h"
 
 class MainWindow : public QWidget

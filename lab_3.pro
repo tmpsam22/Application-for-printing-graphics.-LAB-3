@@ -27,10 +27,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         chart.cpp \
+        chart_drawing_impls.cpp \
         main.cpp \
         mainwindow.cpp
 HEADERS += \
      chart.h \
+     chart_drawing_if.h \
+     chart_drawing_impls.h \
+     common_container.h \
      data_manipulation.h \
      ioc_container.h \
         mainwindow.h \

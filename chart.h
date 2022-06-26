@@ -1,61 +1,18 @@
 #ifndef CHART_H
 #define CHART_H
 
-#include "data_manipulation.h"
-#include <QtCharts>
-#include "message_box.h"
+#include "common_container.h"
 
-#include "ioc_container.h"
-
-struct chartParameters;
-
-struct ChartDrawing
-{
-    virtual ~ChartDrawing() = default;
-    virtual void drawChart(const chartParameters& chartParameter) = 0;
-};
-
-struct barChartDrawing : ChartDrawing
-{
-    ~barChartDrawing() override = default;
-    void drawChart(const chartParameters& chartParameter) override;
-};
-
-struct pieChartDrawing : ChartDrawing
-{
-    ~pieChartDrawing() override = default;
-    void drawChart(const chartParameters& chartParameter) override;
-};
-
-struct chartParameters
-{
-    bool isColorized_;
-
-    QChart* chart_;
-
-    container data_;
-
-    chartParameters()
-        : isColorized_{ true }
-        , chart_{ new QChart() }
-        , data_{ }
-    {
-
-    }
-
-    ~chartParameters()
-    {
-        delete chart_;
-    }
-};
+// forward declaration
+class QChart;
 
 class Chart
 {
 public:
 
-    Chart() = default;
+    Chart();
 
-    virtual ~Chart() = default;
+    virtual ~Chart();
 
     QChart* getChart();
 
@@ -69,7 +26,11 @@ public:
 
 private:
 
-    chartParameters parameters_;
+    QChart* chart_;
+
+    bool isColorized_;
+
+    container data_;
 };
 
 
