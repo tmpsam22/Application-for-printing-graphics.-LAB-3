@@ -1,4 +1,4 @@
-/// @file data_manipulation.h представлены реализации для чтения данных
+/// @file data_manipulation.h представлена реализация для чтения данных
 /// из .sqlite, .json файлов
 
 #pragma once
