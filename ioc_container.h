@@ -1,10 +1,18 @@
+/// @file ioc_container.h header-only файл
+/// представлена реализация IOC-контейнера
 #pragma once
+
+#ifndef IOC_CONTAINER_H
+#define IOC_CONTAINER_H
+
 #include <functional>
 #include <cstdlib>
 #include <memory>
 #include <map>
 #include <QtDebug>
 
+/// @brief IOC-Container
+/// Реализован в виде Синглтон
 class IOCContainer
 {
 
@@ -153,7 +161,7 @@ public:
 
 public:
 
-    // singleton
+    /// @brief получить IOC-контейнер
     static IOCContainer& IOCContainerInstance()
     {
         static IOCContainer ioc_;
@@ -162,7 +170,21 @@ public:
 
 private:
 
+    IOCContainer() = default;
+    ~IOCContainer() = default;
+
+private:
+
+    IOCContainer(const IOCContainer&) = delete;
+    IOCContainer(IOCContainer&&) = delete;
+    IOCContainer& operator=(const IOCContainer&) = delete;
+    IOCContainer& operator=(IOCContainer&&) = delete;
+
+private:
+
      static int s_typeId;
 
      std::map<int, std::shared_ptr<FactoryBase>> factories;
 };
+
+#endif

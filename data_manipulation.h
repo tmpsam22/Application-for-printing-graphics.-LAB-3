@@ -1,3 +1,9 @@
+/// @file data_manipulation.h header-only файл
+/// представлены реализации для чтения данных
+/// из .sqlite, .json файлов
+
+#pragma once
+
 #ifndef DATA_MANIPULATION_H
 #define DATA_MANIPULATION_H
 
@@ -7,6 +13,7 @@
 #include "message_box.h"
 #include "common_container.h"
 
+/// @brief тип файла
 enum class type_file : int
 {
     sql,
@@ -15,6 +22,8 @@ enum class type_file : int
     unknown
 };
 
+/// @brief класс, в котором определена реализация чтение данных
+/// для неизвестных форматов
 template <type_file type>
 struct dataManipulation
 {
@@ -24,6 +33,7 @@ struct dataManipulation
     }
 };
 
+/// @brief класс, в котором определена реализация чтение данных из .sqlite файла
 template <>
 struct dataManipulation<type_file::sql>
 {
@@ -55,6 +65,7 @@ struct dataManipulation<type_file::sql>
     }
 };
 
+/// @brief класс, в котором определена реализация чтение данных из .json файла
 template<>
 struct dataManipulation<type_file::json>
 {

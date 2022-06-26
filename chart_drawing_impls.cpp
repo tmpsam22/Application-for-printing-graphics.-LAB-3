@@ -67,6 +67,7 @@ void pieChartDrawing::drawChart(
     chart->createDefaultAxes();
 }
 
+// определение s_typeId Ioc-контейнера
 int IOCContainer::s_typeId = 17;
 
 std::shared_ptr<IChartDrawing> getChartDrawing()

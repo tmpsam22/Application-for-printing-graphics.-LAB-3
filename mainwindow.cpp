@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include <QSplitter>
 #include <QListView>
-#include <QTreeView>
 #include <QTextEdit>
 #include <QFileSystemModel>
 #include <QItemSelectionModel>
@@ -49,6 +48,8 @@
 namespace
 {
 
+/// для проверки валидности диаграммы при сохрании в .pdf
+/// становится true, когда диаграмма была отрисована
 bool isChartAvailableToPrint = false;
 
 }
@@ -174,9 +175,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
-// slots
-
-// save chart to pdf format
+// слоты
 void MainWindow::slotSaveChartToPdf()
 {
    if (isChartAvailableToPrint)
@@ -200,7 +199,6 @@ void MainWindow::slotSaveChartToPdf()
     messageBox{"There is no chart to save .pdf format"};
 }
 
-// switched color check
 void MainWindow::slotColorSwitch()
 {
     chartManipulation.chart->switchColor();

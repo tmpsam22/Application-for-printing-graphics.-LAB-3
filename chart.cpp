@@ -4,7 +4,7 @@
 
 Chart::Chart()
     : chart_ { new QChart() }
-    , isColorized_ { true }
+    , isColorized_ { true } // по умолчанию диаграмма будет цветной
     , data_ { }
 {
 }
