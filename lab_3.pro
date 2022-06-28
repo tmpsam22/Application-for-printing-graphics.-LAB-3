@@ -27,21 +27,19 @@ DEFINES += TEST
 
 
 SOURCES += \
-        chart.cpp \
-        chart_drawing_impls.cpp \
-        data_manipulation.cpp \
-        data_reader_impls.cpp \
-        ioc_container.cpp \
-        main.cpp \
-        mainwindow.cpp
+     chart.cpp \
+     chart_drawing_impls.cpp \
+     data_reader_impls.cpp \
+     ioc_container.cpp \
+     main.cpp \
+     mainwindow.cpp
 HEADERS += \
      chart.h \
      chart_drawing_if.h \
      chart_drawing_impls.h \
      common_container.h \
-     data_manipulation.h \
      data_reader_if.h \
      data_reader_impls.h \
      ioc_container.h \
-        mainwindow.h \
+     mainwindow.h \
      message_box.h \

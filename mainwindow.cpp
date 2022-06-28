@@ -39,7 +39,6 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QFileDialog>
-#include "data_manipulation.h"
 #include "message_box.h"
 #include "chart_drawing_impls.h"
 #include "data_reader_impls.h"
