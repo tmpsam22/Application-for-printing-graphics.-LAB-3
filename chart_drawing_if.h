@@ -10,6 +10,7 @@
 // forward declaration
 class QChart;  // класс QT для работы с диаграммой
 
+/// @brief интерфейс рисования диаграммы
 struct IChartDrawing
 {
     /// @brief деструктор

@@ -236,11 +236,11 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
 
     if (filePath.endsWith(".sqlite"))
     {
-        setDataReader(data_type::sql);
+        setDataReader(file_type::sql);
     }
     if (filePath.endsWith(".json"))
     {
-        setDataReader(data_type::json);
+        setDataReader(file_type::json);
     }
 
     chart->drawChart(

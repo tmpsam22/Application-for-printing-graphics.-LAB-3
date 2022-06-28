@@ -1,5 +1,4 @@
-/// @file ioc_container.h header-only файл
-/// представлена реализация IOC-контейнера
+/// @file ioc_container.h  представлена реализация IOC-контейнера
 #pragma once
 
 #ifndef IOC_CONTAINER_H
