@@ -42,6 +42,7 @@
 #include "data_manipulation.h"
 #include "message_box.h"
 #include "chart_drawing_impls.h"
+#include "data_reader_impls.h"
 #include <QPdfWriter>
 #include <QSet>
 
@@ -236,61 +237,6 @@ void MainWindow::slotChooseDirectory()
     tableView->setRootIndex(fileModel->setRootPath(currentPath));
 }
 
-namespace
-{
-
-const char* months[12] =
-{
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "June",
-    "July",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-};
-
-}
-
-container maxValuesInMonths(const container& data)
-{
-    QMap<QString, double> map_;
-    QRegularExpression regex("^(\\d+).(\\d+).");
-    for (auto& keyVal : data)
-    {
-        auto& date = keyVal.first;
-        auto month = months[(regex.match(date).captured(2).toInt() - 1)];
-        auto it = map_.find(month);
-
-        if (it == map_.end())
-        {
-            map_.insert(month, keyVal.second);
-            continue;
-        }
-        if (it.value() < keyVal.second)
-        {
-            it.value() = keyVal.second;
-        }
-    }
-    container data_;
-    for (auto it = map_.begin(); it != map_.end(); ++it)
-    {
-        data_.push_back(
-                    qMakePair(
-                        it.key(),
-                        it.value()
-                    )
-        );
-    }
-    return data_;
-    // return container{map_.begin(), map_.end()};
-}
-
 void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
@@ -314,13 +260,25 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
         return;
     }
 
-    auto data = data_manipulation::getData(filePath);
+    if (filePath.endsWith(".sqlite"))
+    {
+        setDataReader(data_type::sql);
+    }
+    if (filePath.endsWith(".json"))
+    {
+        setDataReader(data_type::json);
+    }
 
     auto& chart = chartManipulation.chart;
     chart->drawChart(
-            "Max values in months",
-             maxValuesInMonths(data)
+           #ifdef TEST
+           "Max values in months"
+           #else
+           "Default data output"
+           #endif
+           , filePath
     );
+
     chartManipulation.chartView->setChart(chart->getChart());
     isChartAvailableToPrint = true;
 }

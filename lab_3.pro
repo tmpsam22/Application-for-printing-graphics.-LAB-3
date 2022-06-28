@@ -18,6 +18,7 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += DEBUG
+DEFINES += TEST
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -29,6 +30,8 @@ SOURCES += \
         chart.cpp \
         chart_drawing_impls.cpp \
         data_manipulation.cpp \
+        data_reader_impls.cpp \
+        ioc_container.cpp \
         main.cpp \
         mainwindow.cpp
 HEADERS += \
@@ -37,6 +40,8 @@ HEADERS += \
      chart_drawing_impls.h \
      common_container.h \
      data_manipulation.h \
+     data_reader_if.h \
+     data_reader_impls.h \
      ioc_container.h \
         mainwindow.h \
      message_box.h \

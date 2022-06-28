@@ -26,8 +26,8 @@ public:
 
     /// @brief рисование диаграммы
     /// @param title название диаграммы
-    /// @param data контейнер с данными для рисования
-    void drawChart(const QString& title, const container& data);
+    // ! !!!! ! ! ~!! ! !
+    void drawChart(const QString& title, const QString& path);
 
     /// @brief перерисовка диаграммы
     void reDrawChart() const;

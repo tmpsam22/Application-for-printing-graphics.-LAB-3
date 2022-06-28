@@ -162,11 +162,7 @@ public:
 public:
 
     /// @brief получить IOC-контейнер
-    static IOCContainer& IOCContainerInstance()
-    {
-        static IOCContainer ioc_;
-        return ioc_;
-    }
+    static IOCContainer& IOCContainerInstance();
 
 private:
 
