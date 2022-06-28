@@ -82,14 +82,14 @@ std::shared_ptr<IDataReader> getDataReader()
     return IOCContainer::IOCContainerInstance().GetObject<IDataReader>();
 }
 
-void setDataReader(data_type type)
+void setDataReader(file_type type)
 {
     switch (type)
     {
-        case data_type::sql :
+        case file_type::sql :
             IOCContainer::IOCContainerInstance().RegisterInstance<IDataReader, DataReaderSql>();
             break;
-        case data_type::json :
+        case file_type::json :
             IOCContainer::IOCContainerInstance().RegisterInstance<IDataReader, DataReaderJson>();
             break;
     }
