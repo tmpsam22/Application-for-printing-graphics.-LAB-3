@@ -43,21 +43,10 @@
 #include "message_box.h"
 #include "chart_drawing_impls.h"
 #include "data_reader_impls.h"
-#include <QPdfWriter>
-#include <QSet>
-
-namespace
-{
-
-/// для проверки валидности диаграммы при сохрании в .pdf
-/// становится true, когда диаграмма была отрисована
-bool isChartAvailableToPrint = false;
-
-}
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget{ parent }
-    , chartManipulation{ }
+    , chart{ new Chart() }
     , currentPath{ QDir::homePath() }
     , boxType{ }
     , checkColor{ }
@@ -104,11 +93,6 @@ MainWindow::MainWindow(QWidget *parent)
     // declare checkBox
     checkColor = new QCheckBox("Black&White", this);
 
-    // declare chartManipulation
-    chartManipulation.chart = new Chart{};
-    chartManipulation.chartView = new QChartView{};
-    chartManipulation.chartView->setRenderHint(QPainter::Antialiasing);
-
     // table view
     tableView = new QTableView;
     tableView->setModel(fileModel);
@@ -116,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // splitter setup
     splitter->addWidget(tableView);
-    vertSplitter->addWidget(chartManipulation.chartView);
+    vertSplitter->addWidget(chart->getChartView());
 
     // layout setup
     layoutOptions->stretch(1);
@@ -179,31 +163,22 @@ MainWindow::MainWindow(QWidget *parent)
 // слоты
 void MainWindow::slotSaveChartToPdf()
 {
-   if (isChartAvailableToPrint)
+   if (!chart->isDataEmpty())
    {
         QFileDialog dialog{this};
         dialog.setDirectory(currentPath);
         dialog.setAcceptMode(QFileDialog::AcceptSave);
-        auto path = dialog.getSaveFileUrl().path();
-        if (path.endsWith(".pdf"))
-        {
-            path = path.split(".pdf").first();
-        }
-
-        QPdfWriter writer_{path + ".pdf"};
-        writer_.setCreator("Creator");
-        QPainter painter(&writer_);
-        chartManipulation.chartView->render(&painter);
-        painter.end();
-        return;
+        return chart->saveChartToPdf(
+                    dialog.getSaveFileUrl().path()
+        );
     }
     messageBox{"There is no chart to save .pdf format"};
 }
 
 void MainWindow::slotColorSwitch()
 {
-    chartManipulation.chart->switchColor();
-    chartManipulation.chart->reDrawChart();
+    chart->switchColor();
+    chart->reDrawChart();
 }
 
 void MainWindow::slotChooseChartDraw()
@@ -212,13 +187,13 @@ void MainWindow::slotChooseChartDraw()
     if (chartType.compare("PieChart") == 0)
     {
         setChartDrawing(chart_type::pie);
-        chartManipulation.chart->reDrawChart();
+        chart->reDrawChart();
         return;
     }
     if (chartType.compare("BarChart") == 0)
     {
         setChartDrawing(chart_type::bar);
-        chartManipulation.chart->reDrawChart();
+        chart->reDrawChart();
         return;
     }
     messageBox{"there is no implementation for this type: "
@@ -254,8 +229,7 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
             || filePath.endsWith(".json"));
     if (!isExpectedFile)
     {
-        chartManipulation.chart->cleanSeries();
-        isChartAvailableToPrint = false;
+        chart->resetChar();
         messageBox{"Expect .json or .sqlite"};
         return;
     }
@@ -269,7 +243,6 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
         setDataReader(data_type::json);
     }
 
-    auto& chart = chartManipulation.chart;
     chart->drawChart(
            #ifdef TEST
            "Max values in months"
@@ -278,9 +251,6 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
            #endif
            , filePath
     );
-
-    chartManipulation.chartView->setChart(chart->getChart());
-    isChartAvailableToPrint = true;
 }
 
 MainWindow::~MainWindow()

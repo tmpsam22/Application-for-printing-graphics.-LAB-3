@@ -1,23 +1,33 @@
 #include "chart.h"
 #include "chart_drawing_impls.h"
 #include <QtCharts>
+#include <QChartView>
+#include <QPdfWriter>
 #include "data_reader_impls.h"
 
 Chart::Chart()
     : chart_ { new QChart() }
+    , chartView_ { new QChartView() }
     , isColorized_ { true } // по умолчанию диаграмма будет цветной
     , data_ { }
 {
+    chartView_->setRenderHint(QPainter::Antialiasing);
 }
 
 Chart::~Chart()
 {
     delete chart_;
+    delete chartView_;
 }
 
 QChart* Chart::getChart()
 {
     return chart_;
+}
+
+QChartView* Chart::getChartView()
+{
+    return chartView_;
 }
 
 void Chart::reDrawChart() const
@@ -27,11 +37,14 @@ void Chart::reDrawChart() const
         qDebug() << "Can't draw a chart: data is empty";
         return;
     }
+
     getChartDrawing()->drawChart(
         chart_,
         data_,
         isColorized_
     );
+
+    chartView_->setChart(chart_);
 }
 
 #ifdef TEST
@@ -103,19 +116,36 @@ void Chart::drawChart(const QString& title, const QString& path)
     data_ = maxValuesInMonths(data_);
     #endif
 
-    getChartDrawing()->drawChart(
-        chart_,
-        data_,
-        isColorized_
-    );
-}
-
-void Chart::cleanSeries()
-{
-   chart_->removeAllSeries();
+    reDrawChart();
 }
 
 void Chart::switchColor()
 {
     isColorized_ = (isColorized_ == true) ? false : true;
+}
+
+void Chart::saveChartToPdf(const QString& path)
+{
+    QString path_{ path };
+    if (path_.endsWith(".pdf"))
+    {
+        path_ = path_.split(".pdf").first();
+    }
+
+    QPdfWriter writer_{path_ + ".pdf"};
+    writer_.setCreator("Creator");
+    QPainter painter(&writer_);
+    chartView_->render(&painter);
+    painter.end();
+}
+
+void Chart::resetChar()
+{
+    chart_->removeAllSeries();
+    data_.clear();
+}
+
+bool Chart::isDataEmpty() const
+{
+    return data_.isEmpty();
 }

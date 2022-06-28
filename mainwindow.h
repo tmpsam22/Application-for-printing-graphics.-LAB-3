@@ -44,11 +44,7 @@ public:
 private:
 
     // для взаимодействия с диаграммой
-    struct
-    {
-        Chart* chart;
-        QChartView* chartView;
-    } chartManipulation;
+    Chart* chart;
 
     // текущий путь директории
     QString currentPath;
