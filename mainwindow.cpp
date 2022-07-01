@@ -51,57 +51,59 @@ MainWindow::MainWindow(QWidget *parent)
     , checkColor{ }
     , labelsOutput {}
 {
-    // Window setup
-    setWindowTitle("PrintChart");
-    setGeometry(50, 50, 1200, 600);
+    // Настраиваем окно
+    setWindowTitle("PrintChart"); // Название приложения
+    setGeometry(50, 50, 1200, 600); // Задаем размеры окна
 
-    // label setup
+    // Вывод текста о текущей директории
+    // и поддерживаемых типов у файла
+    // * в нижней левой части главного окна
     labelsOutput.labelPath = new QLabel{};
     labelsOutput.labelInfo = new QLabel{};
-    labelsOutput.labelInfo->setText("Choose .sqllite or .json format files");
+    labelsOutput.labelInfo->setText("Choose .sqlite or .json format files");
     labelsOutput.labelPath->setText(labelsOutput.serialize(currentPath));
 
-    // file model
+    // Определяем файловую систему
     fileModel = new QFileSystemModel{this};
     fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
     fileModel->setRootPath(currentPath);
 
-    // declare layots
+    // Определяем вертикальные и горизонтальные компоновки
     auto layoutMain  = new QHBoxLayout{this};
     auto layoutOptions = new QHBoxLayout{};
     auto layoutVert = new QVBoxLayout{};
     auto layoutVertDir = new QVBoxLayout{};
 
-    // declare buttons
+    // Определяем кнопки
     auto buttonChooseDirectory = new QPushButton{"Choose directory", this};
     auto buttonWritePdf = new QPushButton{"Save to PDF", this};
 
-    // declare splitter
+    // Определяем сплиттеры
     auto splitter = new QSplitter(Qt::Horizontal);
     auto vertSplitter = new QSplitter(Qt::Vertical);
 
-    // declare combobox and setup for choose type of chart
+    // Определяем выпадающий список для выбора графика
     QStringList chartTypes = {"BarChart", "PieChart"};
     boxType = new QComboBox{};
     auto boxLabel = new QLabel{"Choose type of diagram", this};
     boxType->addItems(chartTypes);
 
-    // declare default draw
+    // Устанавливаем вывод диаграммы в виде гистограммы
     setChartDrawing(chart_type::bar);
 
-    // declare checkBox
+    // Определяем флажок для выбора цвета
     checkColor = new QCheckBox("Black&White", this);
 
-    // table view
+    // Табличное представление файлов
     tableView = new QTableView;
     tableView->setModel(fileModel);
     tableView->setRootIndex(fileModel->setRootPath(currentPath));
 
-    // splitter setup
+    // Настройка сплиттеров
     splitter->addWidget(tableView);
     vertSplitter->addWidget(chart->getChartView());
 
-    // layout setup
+    // Настройка компоновок
     layoutOptions->stretch(1);
     layoutOptions->addWidget(boxLabel, 1, Qt::AlignLeft | Qt::AlignTop);
     layoutOptions->addWidget(boxType, 1, Qt::AlignLeft | Qt::AlignTop);
@@ -109,19 +111,18 @@ MainWindow::MainWindow(QWidget *parent)
     layoutOptions->addWidget(buttonWritePdf, 1,  Qt::AlignRight | Qt::AlignTop);
     layoutOptions->addWidget(buttonChooseDirectory, 1,  Qt::AlignRight | Qt::AlignTop);
     layoutVert->addLayout(layoutOptions);
-
     layoutVertDir->addWidget(splitter, 1);
     layoutVertDir->addWidget(labelsOutput.labelInfo, 0, Qt::AlignLeft | Qt::AlignBottom);
     layoutVertDir->addWidget(labelsOutput.labelPath, 0, Qt::AlignLeft | Qt::AlignBottom);
     layoutMain->addLayout(layoutVertDir);
-
     layoutVert->addWidget(vertSplitter);
     layoutMain->addLayout(layoutVert);
     setLayout(layoutMain);
 
+    // Для отслеживания выбранных элементов
     QItemSelectionModel *selectionModel = tableView->selectionModel();
 
-    // setup signals
+    // Подключение сигналов и слотов
     connect(
             selectionModel,
             SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
@@ -159,80 +160,105 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
-// слоты
+// определение слотов
+
+// определение слота сохранения диаграммы в файл формата .pdf
 void MainWindow::slotSaveChartToPdf()
 {
-   if (!chart->isDataEmpty())
-   {
-        QFileDialog dialog{this};
-        dialog.setDirectory(currentPath);
-        dialog.setAcceptMode(QFileDialog::AcceptSave);
-        return chart->saveChartToPdf(
-                    dialog.getSaveFileUrl().path()
-        );
+    // если данные пусты, то нечего печатать
+    if (chart->isDataEmpty())
+    {
+        messageBox{"There is no chart to save .pdf format"};
+        return;
     }
-    messageBox{"There is no chart to save .pdf format"};
+
+    // создаем диалоговое окно в текущей директорией
+    // с сохранением файла
+    QFileDialog dialog{this};
+    dialog.setDirectory(currentPath);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+
+    chart->saveChartToPdf(
+                dialog.getSaveFileUrl().path()
+    ); // сохраняем диаграмму в .pdf
 }
 
+// определение слота смены цвета диаграммы
 void MainWindow::slotColorSwitch()
 {
-    chart->switchColor();
-    chart->reDrawChart();
+    chart->switchColor(); // меняем цвет у диаграммы
+    chart->reDrawChart(); // перерисовка диаграммы
 }
 
+// определение слота выбора типа диаграммы
 void MainWindow::slotChooseChartDraw()
 {
-    QString chartType{boxType->currentText()};
-    if (chartType.compare("PieChart") == 0)
+    QString chartType{boxType->currentText()}; // вид диаграммы
+
+    if (chartType.compare("PieChart") == 0) // вид диаграммы в виде круга
     {
-        setChartDrawing(chart_type::pie);
-        chart->reDrawChart();
+        setChartDrawing(chart_type::pie); // устанавливаем отрисовку диаграммы
+        chart->reDrawChart(); // перерисовка диаграммы
         return;
     }
-    if (chartType.compare("BarChart") == 0)
+    if (chartType.compare("BarChart") == 0) // вид диаграммы в виде гистограммы
     {
-        setChartDrawing(chart_type::bar);
-        chart->reDrawChart();
+        setChartDrawing(chart_type::bar); // устанавливаем отрисовку диаграммы
+        chart->reDrawChart(); // перерисовка диаграммы
         return;
     }
+    // иначе отрисовка ещё не реализована
     messageBox{"there is no implementation for this type: "
                + chartType};
 }
 
+// определение слота выбора директории
 void MainWindow::slotChooseDirectory()
 {
+    // создаем диалоговое окно с текущей директорией
+    // для выбора директории
     QFileDialog dialog{this};
     dialog.setFileMode(QFileDialog::Directory);
     if ( dialog.exec() )
     {
+        // получаем директорию из диалогового окна
         currentPath = dialog.selectedFiles().first();
+        // обновляем вывод о текущей директории
         labelsOutput.labelPath->setText(labelsOutput.serialize(currentPath));
     }
+    // устанавливаем в табличное представление текущую директорию
     tableView->setRootIndex(fileModel->setRootPath(currentPath));
 }
 
+// определение слота выбора файла
 void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
+
+    // определяем индекс у выбранного файла
     QModelIndexList indexs =  selected.indexes();
     if (indexs.count() < 1)
     {
         return;
     }
 
-    QString filePath{""};
-    filePath = fileModel->filePath(indexs.constFirst());
+    // определяем путь к выбранному файлу
+    QString filePath{ fileModel->filePath(indexs.constFirst()) };
 
+    // проверка ожидаемого типа у файла
     bool isExpectedFile = true
             && (filePath.endsWith(".sqlite")
             || filePath.endsWith(".json"));
     if (!isExpectedFile)
     {
+        // обнуляем диаграмму с данными
         chart->resetChar();
+        // выводим пользователю соотвествующее сообщение о поддерживаемых типах
         messageBox{"Expect .json or .sqlite"};
         return;
     }
 
+    // устанавливаем соотвествующий тип файла
     if (filePath.endsWith(".sqlite"))
     {
         setDataReader(file_type::sql);
@@ -242,6 +268,11 @@ void MainWindow::slotSelectionChanged(const QItemSelection &selected, const QIte
         setDataReader(file_type::json);
     }
 
+    // т.к. предложенные данные очень большие, то для тестирования
+    // сборка идёт с DEFINES += TEST
+    // из данных выбираются максимальные значения по месяцам
+
+    // рисуем диаграмму
     chart->drawChart(
            #ifdef TEST
            "Max values in months"
