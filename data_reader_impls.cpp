@@ -96,7 +96,10 @@ container DataReaderJson::getData(const QString &path)
     return data_;
 }
 
-// функция получения интерфейса извлечения данных
+/// функция получения интерфейса извлечения данных
+/// реализована с помощью IOC-контейнера
+/// необходимая реализация интерфейса может задаваться пользователем без изменения
+/// реализации получения интерфейса
 std::shared_ptr<IDataReader> getDataReader()
 {
     return IOCContainer::IOCContainerInstance().GetObject<IDataReader>();

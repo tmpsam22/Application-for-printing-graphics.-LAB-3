@@ -39,6 +39,7 @@ void Chart::reDrawChart() const
     }
 
     // рисуем диаграмму с помощью полученного интерфейса
+    // получение интерфейса и реализация рисования диаграммы скрыты
     getChartDrawing()->drawChart(
         chart_,
         data_,
@@ -121,7 +122,9 @@ void Chart::drawChart(const QString& title, const QString& path)
 {
     chart_->setTitle(title); // устанвливаем название диаграммы
 
-    data_ = getDataReader()->getData(path); // получаем данные из файла c помощью интерфейса извлечения данных
+    // получаем данные из файла c помощью интерфейса извлечения данных
+    // получение интерфейса и реализация извлечения данных скрыты
+    data_ = getDataReader()->getData(path);
 
     #ifdef TEST
     // т.к. предложенные данные очень большие, то для тестирования

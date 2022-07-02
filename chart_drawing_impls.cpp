@@ -71,6 +71,9 @@ void pieChartDrawing::drawChart(
 }
 
 /// получение интерфейса рисования диаграммы
+/// реализована с помощью IOC-контейнера
+/// необходимая реализация интерфейса может задаваться пользователем без изменения
+/// реализации получения интерфейса
 std::shared_ptr<IChartDrawing> getChartDrawing()
 {
     return IOCContainer::IOCContainerInstance().GetObject<IChartDrawing>();
